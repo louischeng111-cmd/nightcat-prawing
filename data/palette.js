@@ -1,9 +1,9 @@
 /**
- * 夜貓釣蝦場 — AU splash palette (cover-au-daiwa-brush.jpg, 2026-10-24).
- * Single token source for CSS variables and Three.js materials.
- * Sampled from the locked cover: off-white wall, sea-blue water,
- * black title with orange brush edge, Daiwa red/black rod, orange claws.
- * Exposes window.NightcatPalette. Edit colors here; styles.css fallbacks mirror them.
+ * 夜貓釣蝦場 — shared tokens.
+ * In-pool / HUD follows Louis's Space 6 reference (2026-10-24):
+ * dark charcoal chrome, mint walls, teal pool, orange strike.
+ * Setup card + splash letterbox stay on the AU cover tones.
+ * Exposes window.NightcatPalette. styles.css :root mirrors the CSS names.
  */
 (function (global) {
   "use strict";
@@ -13,17 +13,32 @@
   }
 
   const T = {
-    wall: 0xe8e2dc,
-    wallDeep: 0xd9d3cc,
+    // In-pool hall (Three.js). Not the cream AU setup backdrop.
+    wall: 0x8fd4b4,
+    wallDeep: 0x5eae90,
+    sea: 0x0e8c90,
+    seaBright: 0x14a3a0,
+    seaDeep: 0x0a5960,
+    seaSurface: 0x12b0aa,
+    seaHighlight: 0x1ec4bc,
+    rim: 0xc5c9cf,
+    sign: 0x6e2430,
+    signGold: 0xe4c36a,
+    // HUD chrome
+    chrome: 0x101614,
+    card: 0x14211c,
+    line: 0x2f9a78,
+    orange: 0xf26512,
+    orangeHot: 0xff8a2a,
+    gold: 0xe6c15a,
+    // AU setup / splash (do not drive the pool)
+    setupWall: 0xe8e2dc,
+    setupWallDeep: 0xd9d3cc,
     ink: 0x161311,
     brush: 0xe06a22,
     brushDeep: 0xc44712,
-    sea: 0x1f6aa8,
-    seaBright: 0x2f86c0,
-    seaDeep: 0x143656,
-    seaSurface: 0x3a8ec4,
-    seaHighlight: 0x4a9ad4,
     seaButton: 0x8eafd0,
+    splashDeep: 0x143656,
     rodRed: 0xc51628,
     rodBlack: 0x1a1c20,
     paper: 0xf7f4ef,
@@ -39,46 +54,54 @@
   };
 
   const css = {
-    "--bg": hex(T.wall),
-    "--bg-warm": hex(T.wallDeep),
-    "--wall": hex(T.wall),
-    "--wall-deep": hex(T.wallDeep),
+    "--bg": hex(T.chrome),
+    "--bg-warm": hex(T.chrome),
+    "--chrome": hex(T.chrome),
+    "--card": hex(T.card),
+    "--line": hex(T.line),
+    "--orange": hex(T.orange),
+    "--orange-hot": hex(T.orangeHot),
+    "--gold": hex(T.gold),
+    "--hud-text": "#f4faf6",
+    "--sage": hex(T.wall),
+    "--wall": hex(T.setupWall),
+    "--wall-deep": hex(T.setupWallDeep),
     "--panel": hex(T.paper),
-    "--panel-dark": hex(T.paper),
+    "--panel-dark": hex(T.card),
     "--paper": hex(T.paper),
     "--paper-shade": hex(T.paperShade),
     "--ink": hex(T.ink),
     "--text": hex(T.ink),
-    "--text-on-dark": hex(T.ink),
-    "--accent": hex(T.brush),
-    "--accent-deep": hex(T.brushDeep),
+    "--text-on-dark": "#f4faf6",
+    "--accent": hex(T.orange),
+    "--accent-deep": hex(T.orange),
     "--brush": hex(T.brush),
     "--brush-deep": hex(T.brushDeep),
     "--accent-blue": hex(T.sea),
     "--sea": hex(T.sea),
     "--sea-bright": hex(T.seaBright),
-    "--sea-deep": hex(T.seaDeep),
+    "--sea-deep": hex(T.splashDeep),
     "--sea-surface": hex(T.seaSurface),
     "--sea-highlight": hex(T.seaHighlight),
     "--sea-button": hex(T.seaButton),
     "--rod-red": hex(T.rodRed),
     "--rod-black": hex(T.rodBlack),
-    "--amber": hex(T.brush),
-    "--amber-soft": hex(T.brush),
+    "--amber": hex(T.gold),
+    "--amber-soft": hex(T.gold),
     "--muted": hex(T.muted),
-    "--muted-on-dark": hex(T.muted),
+    "--muted-on-dark": "#b7c4bc",
     "--danger": hex(T.danger),
     "--ok": hex(T.ok),
     "--warn": hex(T.warn),
-    "--border": "rgba(22, 19, 17, 0.12)",
-    "--shadow": "0 10px 28px rgba(22, 19, 17, 0.1)",
+    "--border": "rgba(47, 154, 120, 0.45)",
+    "--shadow": "0 10px 28px rgba(0, 0, 0, 0.35)",
   };
 
   const root = global.document && global.document.documentElement;
   if (root) {
     Object.keys(css).forEach((name) => root.style.setProperty(name, css[name]));
     const meta = global.document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute("content", css["--wall"]);
+    if (meta) meta.setAttribute("content", css["--chrome"]);
   }
 
   T.hex = hex;

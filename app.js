@@ -7,17 +7,19 @@
 
   // AU cover palette (data/palette.js). Fallbacks match that file.
   const Pal = window.NightcatPalette || {
-    wall: 0xe8e2dc,
-    wallDeep: 0xd9d3cc,
-    ink: 0x161311,
-    brush: 0xe06a22,
-    sea: 0x1f6aa8,
-    seaBright: 0x2f86c0,
-    seaDeep: 0x143656,
-    seaSurface: 0x3a8ec4,
-    seaHighlight: 0x4a9ad4,
+    wall: 0x8fd4b4,
+    wallDeep: 0x5eae90,
+    sea: 0x0e8c90,
+    seaBright: 0x14a3a0,
+    seaDeep: 0x0a5960,
+    seaSurface: 0x12b0aa,
+    seaHighlight: 0x1ec4bc,
+    rim: 0xc5c9cf,
+    sign: 0x6e2430,
+    signGold: 0xe4c36a,
     rodRed: 0xc51628,
     rodBlack: 0x1a1c20,
+    brush: 0xe06a22,
     claw: 0xe25a1c,
     prawn: 0x8d5a34,
     prawnDark: 0x6a3e24,
@@ -159,7 +161,7 @@
     toastEl.textContent = msg;
     toastEl.className = "toast show" + (kind ? " " + kind : "");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2200);
+    toastTimer = setTimeout(() => toastEl.classList.remove("show"), 4200);
   }
 
   function setStatus(text) {
@@ -622,9 +624,9 @@
     }
     const wrap = $("canvas-wrap");
     scene = new THREE.Scene();
-    // Bright warehouse hall — off-white walls from the AU cover, not a night club.
+    // Mint / sage hall (Space 6 ref), not the cream AU splash.
     scene.background = new THREE.Color(Pal.wall);
-    scene.fog = new THREE.Fog(Pal.wall, 32, 82);
+    scene.fog = new THREE.Fog(Pal.wall, 34, 86);
 
     // Home pose is aspect-aware (tall phone vs landscape). See applyHomeCamera.
     const viewW = Math.max(1, wrap.clientWidth);
@@ -645,12 +647,12 @@
     }
     wrap.appendChild(renderer.domElement);
 
-    // ——— Warehouse lighting: warm overhead key, soft shadows, cool fill ———
-    const hemi = new THREE.HemisphereLight(0xfff8f2, 0xe7e2da, 1.15);
+    // Even hall light so the sage walls and teal pool stay readable.
+    const hemi = new THREE.HemisphereLight(0xf4fff8, Pal.wallDeep, 0.85);
     scene.add(hemi);
-    const amb = new THREE.AmbientLight(0xf7f4ef, 0.72);
+    const amb = new THREE.AmbientLight(0xf3faf6, 0.5);
     scene.add(amb);
-    const key = new THREE.DirectionalLight(0xfff6ee, 0.9);
+    const key = new THREE.DirectionalLight(0xffffff, 0.72);
     key.position.set(2.5, 8, 3);
     key.castShadow = true;
     key.shadow.mapSize.set(1024, 1024);
@@ -662,7 +664,7 @@
     key.shadow.camera.bottom = -7;
     key.shadow.bias = -0.0008;
     scene.add(key);
-    const fill = new THREE.DirectionalLight(0xeef3f8, 0.4);
+    const fill = new THREE.DirectionalLight(0xe7f6f0, 0.32);
     fill.position.set(-3, 5, -2);
     scene.add(fill);
 
@@ -687,13 +689,13 @@
       const panel = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.03, 0.78), ledPanelMat);
       panel.position.set(x, y - 0.02, z);
       scene.add(panel);
-      const pl = new THREE.PointLight(0xfffaf0, 0.46, 10, 2);
+      const pl = new THREE.PointLight(0xf7fff8, 0.34, 10, 2);
       pl.position.set(x, y - 0.35, z);
       scene.add(pl);
     });
 
     // Soft sea-blue bounce off the pool (not a teal neon wash)
-    const waterFill = new THREE.PointLight(Pal.seaBright, 0.28, 10, 2);
+    const waterFill = new THREE.PointLight(Pal.seaBright, 0.16, 9, 2);
     waterFill.position.set(0, 2.0, 0.2);
     scene.add(waterFill);
 
@@ -719,7 +721,7 @@
       new THREE.PlaneGeometry(24, 24),
       new THREE.MeshStandardMaterial({
         map: floorTileTex,
-        color: 0xf3f1ee,
+        color: 0xd5d8dc,
         roughness: 0.88,
         metalness: 0.02,
       })
@@ -733,17 +735,17 @@
     const backWallMat = new THREE.MeshStandardMaterial({
       map: wallMetalTex,
       color: 0xffffff,
+      roughness: 0.9,
+      metalness: 0.0,
+      emissive: Pal.wall,
+      emissiveIntensity: 0.28,
+    });
+    const sideWallMat = new THREE.MeshStandardMaterial({
+      color: Pal.wall,
       roughness: 0.92,
       metalness: 0.0,
       emissive: Pal.wall,
-      emissiveIntensity: 0.18,
-    });
-    const sideWallMat = new THREE.MeshStandardMaterial({
-      color: 0xf6f3ee,
-      roughness: 0.94,
-      metalness: 0.0,
-      emissive: Pal.wall,
-      emissiveIntensity: 0.16,
+      emissiveIntensity: 0.22,
     });
     function wall(mat, w, h, d, x, y, z) {
       const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
@@ -765,7 +767,7 @@
     // Bright white ceiling panels
     const ceiling = new THREE.Mesh(
       new THREE.PlaneGeometry(18, 26),
-      new THREE.MeshStandardMaterial({ color: 0xf4f1ec, roughness: 0.92, side: THREE.FrontSide })
+      new THREE.MeshStandardMaterial({ color: 0xdff3ea, roughness: 0.92, side: THREE.FrontSide })
     );
     ceiling.rotation.x = Math.PI / 2;
     ceiling.position.set(0, hallTop, 2.2);
@@ -831,8 +833,45 @@
       })
     );
 
-    scoreBoard.position.set(1.2, 2.35, -4.84);
+    scoreBoard.position.set(4.7, 2.55, -4.84);
     scene.add(scoreBoard);
+
+    // Maroon / gold hall name, above the sponsor row. Not a paid slot.
+    function addHallSign() {
+      const c = document.createElement("canvas");
+      c.width = 768;
+      c.height = 200;
+      const ctx = c.getContext("2d");
+      ctx.fillStyle = Pal.hex(Pal.sign);
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.strokeStyle = Pal.hex(Pal.signGold);
+      ctx.lineWidth = 12;
+      ctx.strokeRect(14, 14, c.width - 28, c.height - 28);
+      ctx.fillStyle = Pal.hex(Pal.signGold);
+      ctx.textAlign = "center";
+      ctx.font = "bold 72px sans-serif";
+      ctx.fillText("夜貓釣蝦場", c.width / 2, 112);
+      ctx.font = "26px sans-serif";
+      ctx.fillStyle = "#f6e7c0";
+      ctx.fillText("香港室內釣蝦 · 娛樂模擬", c.width / 2, 156);
+      const tex = new THREE.CanvasTexture(c);
+      if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+      const g = new THREE.Group();
+      const frame = new THREE.Mesh(
+        new THREE.BoxGeometry(2.35, 1.05, 0.04),
+        new THREE.MeshStandardMaterial({ color: 0x4a1822, roughness: 0.55 })
+      );
+      const panel = new THREE.Mesh(
+        new THREE.BoxGeometry(2.2, 0.92, 0.05),
+        new THREE.MeshStandardMaterial({ map: tex, roughness: 0.5, metalness: 0.05 })
+      );
+      panel.position.z = 0.02;
+      g.add(frame);
+      g.add(panel);
+      g.position.set(0, 1.62, -4.7);
+      scene.add(g);
+    }
+    addHallSign();
 
     // Blue wall fans (ref photo)
     function wallFan(x, y, z, rotY) {
@@ -929,18 +968,18 @@
     tankFloor.receiveShadow = true;
     poolGroup.add(tankFloor);
 
-    // WATER VOLUME — translucent 海藍色 body (KEEP)
+    // WATER VOLUME — opaque teal / turquoise (Space 6), darker than the AU sea-blue.
     const waterDepth = Math.max(0.35, WATER_Y - (bottomY + 0.05));
     const waterVolMat = new THREE.MeshStandardMaterial({
-      color: Pal.seaBright,
-      roughness: 0.16,
-      metalness: 0.04,
+      color: Pal.sea,
+      roughness: 0.28,
+      metalness: 0.02,
       transparent: true,
-      opacity: 0.72,
+      opacity: 0.9,
       side: THREE.DoubleSide,
       depthWrite: false,
-      emissive: Pal.sea,
-      emissiveIntensity: 0.16,
+      emissive: Pal.seaDeep,
+      emissiveIntensity: 0.08,
     });
     const waterVolume = new THREE.Mesh(
       new THREE.BoxGeometry(tankW - 0.08, waterDepth, tankD - 0.08),
@@ -950,18 +989,18 @@
     waterVolume.renderOrder = 1;
     poolGroup.add(waterVolume);
 
-    // WATER SURFACE — sea-blue film + ripple (KEEP)
+    // WATER SURFACE — teal film, not a neon glow.
     const waterGeo = new THREE.PlaneGeometry(tankW - 0.1, tankD - 0.1, 48, 32);
     const surfaceMat = new THREE.MeshStandardMaterial({
-      color: Pal.seaHighlight,
-      roughness: 0.06,
-      metalness: 0.18,
+      color: Pal.seaSurface,
+      roughness: 0.12,
+      metalness: 0.08,
       transparent: true,
-      opacity: 0.62,
+      opacity: 0.82,
       side: THREE.DoubleSide,
       depthWrite: false,
-      emissive: Pal.seaBright,
-      emissiveIntensity: 0.1,
+      emissive: Pal.sea,
+      emissiveIntensity: 0.05,
     });
     waterMesh = new THREE.Mesh(waterGeo, surfaceMat);
     waterMesh.rotation.x = -Math.PI / 2;
@@ -970,13 +1009,13 @@
     poolGroup.add(waterMesh);
 
     const edgeMat = new THREE.MeshStandardMaterial({
-      color: 0x9ec4e0,
+      color: Pal.seaHighlight,
       roughness: 0.22,
       metalness: 0.08,
       transparent: true,
       opacity: 0.62,
-      emissive: Pal.seaBright,
-      emissiveIntensity: 0.05,
+      emissive: Pal.seaDeep,
+      emissiveIntensity: 0.04,
       depthWrite: false,
     });
     function waterEdge(w, d, x, z) {
@@ -990,10 +1029,10 @@
     waterEdge(0.035, tankD - 0.08, -tankW / 2 + 0.04, 0);
     waterEdge(0.035, tankD - 0.08, tankW / 2 - 0.04, 0);
 
-    // Grey marble-pattern rim (ref photo)
+    // Grey tile rim
     const ledgeMat = new THREE.MeshStandardMaterial({
       map: marbleTex,
-      color: 0xe4e0da,
+      color: Pal.rim || 0xc5c9cf,
       roughness: 0.4,
       metalness: 0.08,
     });
@@ -1027,9 +1066,9 @@
 
     // Faint under-ledge cool strip — reflected pool light, not a neon tube.
     const ledMat = new THREE.MeshStandardMaterial({
-      color: Pal.seaBright,
-      emissive: Pal.sea,
-      emissiveIntensity: 0.1,
+      color: Pal.seaDeep,
+      emissive: Pal.seaDeep,
+      emissiveIntensity: 0.04,
       roughness: 0.55,
     });
     function ledStrip(w, d, x, z) {
@@ -1346,7 +1385,7 @@
     const c = document.createElement("canvas");
     c.width = c.height = size;
     const ctx = c.getContext("2d");
-    ctx.fillStyle = "#e4e0da";
+    ctx.fillStyle = "#cfd3d8";
     ctx.fillRect(0, 0, size, size);
     // soft veins
     for (let i = 0; i < 18; i++) {
@@ -1402,8 +1441,8 @@
     const cell = size / div;
     for (let y = 0; y < div; y++) {
       for (let x = 0; x < div; x++) {
-        const shade = 214 + ((x + y) % 2) * 8 + Math.floor(Math.random() * 5);
-        ctx.fillStyle = `rgb(${shade},${shade - 1},${shade - 4})`;
+        const shade = 186 + ((x + y) % 2) * 10 + Math.floor(Math.random() * 6);
+        ctx.fillStyle = `rgb(${shade},${shade + 1},${shade + 3})`;
         ctx.fillRect(x * cell, y * cell, cell + 0.5, cell + 0.5);
         ctx.strokeStyle = "rgba(120,124,132,0.35)";
         ctx.lineWidth = 2;
@@ -1419,7 +1458,7 @@
     const c = document.createElement("canvas");
     c.width = c.height = size;
     const ctx = c.getContext("2d");
-    ctx.fillStyle = "#f4f1ec";
+    ctx.fillStyle = Pal.hex(Pal.wall);
     ctx.fillRect(0, 0, size, size);
     for (let x = 0; x < size; x += 6) {
       ctx.fillStyle = x % 12 === 0 ? "rgba(255,255,255,0.22)" : "rgba(22,19,17,0.04)";
@@ -1442,8 +1481,8 @@
     const ctx = c.getContext("2d");
     const styles = {
       green: { bg: "#1f6b3a", accent: "#d7efe0", title: "夜貓資訊" },
-      logo: { bg: "#f7f4ef", accent: Pal.hex(Pal.brush), title: "夜貓釣蝦" },
-      black: { bg: "#161311", accent: Pal.hex(Pal.brush), title: "夜貓" },
+      logo: { bg: Pal.hex(Pal.sign), accent: Pal.hex(Pal.signGold), title: "夜貓釣蝦場" },
+      black: { bg: "#f7f4ef", accent: "#c51628", title: "廣告招租" },
       teal: { bg: Pal.hex(Pal.sea), accent: Pal.hex(Pal.brush), title: "新鮮活蝦" },
       side: { bg: "#24303c", accent: Pal.hex(Pal.seaButton), title: "廣告位" },
     };
@@ -2174,6 +2213,7 @@
     setButtons();
     game.pendingSpecies = null;
     game.pendingMatch = null;
+    toast((title ? title + " · " : "") + (msg || ""), "alert");
     showResult(false, null, title, msg);
   }
 
@@ -2366,12 +2406,16 @@
   $("btn-boss").addEventListener("click", bossRefill);
   bossBanner.addEventListener("click", () => bossBanner.classList.remove("show"));
 
+  function syncSoundLabel() {
+    btnSound.textContent = game.soundOn ? "♪ 音效開" : "♪ 音效關";
+    btnSound.setAttribute("aria-pressed", game.soundOn ? "true" : "false");
+  }
   btnSound.addEventListener("click", () => {
     game.soundOn = !game.soundOn;
-    btnSound.textContent = game.soundOn ? "🔊" : "🔇";
-    btnSound.setAttribute("aria-pressed", game.soundOn ? "true" : "false");
+    syncSoundLabel();
     toast(game.soundOn ? "聲效開啟（第一版暫未有音效檔）" : "已靜音");
   });
+  syncSoundLabel();
 
   // Initial button state before scene
   setButtons();

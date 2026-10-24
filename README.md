@@ -92,14 +92,13 @@ python3 -m http.server 5173
 - 需網絡載入 Google Fonts 同 Three.js CDN（可之後改自架）。
 
 ## Visual notes (2026-10-24)
-- Hall style matches the locked AU splash: plain off-white walls, soft overhead light, sea-blue pool, Daiwa-like red/black rod. Not a neon nightclub.
-- Shared tokens live in `data/palette.js` (sampled from `covers/cover-au-daiwa-brush.jpg`) and drive both CSS variables and Three.js materials.
-- Pool water stays **海藍色** (`NightcatPalette.sea` / `seaSurface`, about `#1f6aa8` / `#3a8ec4`) — not murky green and not teal neon.
-- Far/side walls keep **廣告位** panels (`makeAdPanelTexture` / `addAdPanel`) for paid ads.
-- Setup, HUD, and result cards use paper chips, black type, and an orange brush edge for emphasis.
+- Splash + setup card stay on the AU cover (off-white, sea-blue pill, orange brush).
+- In-pool HUD follows the Space 6 reference: dark charcoal chrome, stat cards with a thin green outline, a full-width orange「開槍」button, and an orange result line above it.
+- The hall is mint/sage walls, teal pool water, grey tile rim, plus the sponsor ad row and a maroon/gold「夜貓釣蝦場」sign.
+- Shared tokens live in `data/palette.js`.
 
-Hard refresh after pull: Ctrl+Shift+R so `index.html` loads `app.js?v=au-warehouse` and `styles.css?v=au-warehouse`.
+Hard refresh after pull: Ctrl+Shift+R so `index.html` loads `app.js?v=space6-hud` and `styles.css?v=space6-hud`.
 
 ## 本機試玩
 
-見 [`PLAY.md`](PLAY.md)。`python3 -m http.server 5173` 後開 <http://127.0.0.1:5173/>（硬刷新 `?v=au-warehouse`）。
+見 [`PLAY.md`](PLAY.md)。`python3 -m http.server 5173` 後開 <http://127.0.0.1:5173/>（硬刷新 `?v=space6-hud`）。

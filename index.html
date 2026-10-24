@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#e8e2dc" />
+  <meta name="theme-color" content="#101614" />
   <title>夜貓釣蝦場｜香港釣蝦模擬</title>
   <meta name="description" content="香港釣蝦場娛樂模擬器：拋竿、睇浮標、開槍、搏蝦。純娛樂，唔係真實投注。" />
   <meta property="og:type" content="website" />
@@ -24,8 +24,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;900&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet" />
-  <script src="data/palette.js?v=au-warehouse"></script>
-  <link rel="stylesheet" href="styles.css?v=au-warehouse" />
+  <script src="data/palette.js?v=space6-hud"></script>
+  <link rel="stylesheet" href="styles.css?v=space6-hud" />
 </head>
 <body>
   <div id="app">
@@ -78,23 +78,25 @@
     <div id="hud" class="hidden" aria-live="polite">
       <div class="top-bar">
         <div class="pill-row">
-          <span class="pill" id="pill-basket" title="蝦簍">🧺 <strong id="basket-count">0</strong> 尾 · <strong id="basket-weight">0.0</strong> 兩</span>
-          <span class="pill" id="pill-dex" title="圖鑑">📖圖鑑 <strong id="dex-count">0/6</strong></span>
-          <span class="pill" id="pill-coins" title="夜幣">🪙 <strong id="coin-count">0</strong></span>
+          <span class="pill" id="pill-basket" title="蝦簍"><span class="k">已釣</span><span class="v"><strong id="basket-count">0</strong><em>尾</em></span></span>
+          <span class="pill" title="總重"><span class="k">總重量</span><span class="v"><strong id="basket-weight">0.0</strong><em>兩</em></span></span>
+          <span class="pill" id="pill-dex" title="圖鑑"><span class="k">圖鑑</span><span class="v"><strong id="dex-count">0/6</strong></span></span>
+          <span class="pill" id="pill-coins" title="夜幣"><span class="k">夜幣</span><span class="v"><strong id="coin-count">0</strong></span></span>
           <span class="pill status" id="pill-status">待命</span>
         </div>
-        <div class="icon-row">
-          <button type="button" class="icon-btn" id="btn-shop" title="商店／月卡">🛒</button>
-          <button type="button" class="icon-btn" id="btn-contracts" title="今日合約">📋</button>
-          <button type="button" class="icon-btn" id="btn-dex" title="圖鑑">🦐</button>
-          <button type="button" class="icon-btn" id="btn-boss" title="老闆冇蝦啊">📢</button>
-          <button type="button" class="icon-btn" id="btn-sound" title="聲效" aria-pressed="false">🔇</button>
-          <button type="button" class="icon-btn" id="btn-guide" title="操作說明">📖</button>
-          <button type="button" class="icon-btn" id="btn-basket" title="蝦簍">🧺</button>
+        <div class="hud-tools">
+          <button type="button" class="sound-pill" id="btn-sound" title="聲效" aria-pressed="false">♪ 音效關</button>
+          <div class="icon-row">
+            <button type="button" class="icon-btn" id="btn-shop" title="商店／月卡">🛒</button>
+            <button type="button" class="icon-btn" id="btn-contracts" title="今日合約">📋</button>
+            <button type="button" class="icon-btn" id="btn-dex" title="圖鑑">🦐</button>
+            <button type="button" class="icon-btn" id="btn-boss" title="老闆冇蝦啊">📢</button>
+            <button type="button" class="icon-btn" id="btn-guide" title="操作說明">📖</button>
+            <button type="button" class="icon-btn" id="btn-basket" title="蝦簍">🧺</button>
+          </div>
         </div>
       </div>
       <div class="contract-strip" id="contract-strip" aria-label="今日合約"></div>
-      <div class="toast" id="toast" role="status"></div>
       <div class="bite-flash" id="bite-flash">滅頂！快開槍！</div>
       <div class="wow-stamp" id="wow-stamp" aria-hidden="true"></div>
       <div class="tension-wrap" id="tension-wrap">
@@ -103,9 +105,12 @@
         <div class="tension-hint" id="tension-hint">按住「開槍」拉緊 · 鬆開放線</div>
       </div>
       <div class="bottom-bar">
-        <button type="button" class="btn btn-action" id="btn-cast">拋竿</button>
-        <button type="button" class="btn btn-action" id="btn-tease" disabled>逗蝦</button>
-        <button type="button" class="btn btn-action fire" id="btn-strike" disabled>開槍</button>
+        <div class="toast" id="toast" role="status"></div>
+        <div class="secondary-actions">
+          <button type="button" class="btn btn-action" id="btn-cast">拋竿</button>
+          <button type="button" class="btn btn-action" id="btn-tease" disabled>逗蝦</button>
+        </div>
+        <button type="button" class="btn btn-action fire" id="btn-strike" disabled><span class="bolt" aria-hidden="true">⚡</span>開槍</button>
       </div>
     </div>
 
@@ -201,13 +206,13 @@
     </div>
   </div>
 
-  <script src="vendor/three.min.js?v=au-warehouse"></script>
-  <script src="data/species.js?v=au-warehouse"></script>
-  <script src="data/techniques.js?v=au-warehouse"></script>
-  <script src="data/progress.js?v=au-warehouse"></script>
-  <script src="data/shop.js?v=au-warehouse"></script>
-  <script src="data/sponsors.js?v=au-warehouse"></script>
-  <script src="data/wow.js?v=au-warehouse"></script>
-  <script src="app.js?v=au-warehouse"></script>
+  <script src="vendor/three.min.js?v=space6-hud"></script>
+  <script src="data/species.js?v=space6-hud"></script>
+  <script src="data/techniques.js?v=space6-hud"></script>
+  <script src="data/progress.js?v=space6-hud"></script>
+  <script src="data/shop.js?v=space6-hud"></script>
+  <script src="data/sponsors.js?v=space6-hud"></script>
+  <script src="data/wow.js?v=space6-hud"></script>
+  <script src="app.js?v=space6-hud"></script>
 </body>
 </html>
