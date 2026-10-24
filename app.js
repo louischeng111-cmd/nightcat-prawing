@@ -602,10 +602,10 @@
     if (!camera || !game.camLook) return;
     const aspect = camera.aspect > 0 ? camera.aspect : 1;
     if (aspect < 0.9) {
-      // Closer portrait view. Side rims stay in the inset; far ads may crop.
-      camera.fov = 61;
-      camera.position.set(0.05, 5.35, 6.45);
-      game.camLook.set(0, 0.66, -0.1);
+      // Larger portrait pool. Far rim and front wall stay in frame; pan is unchanged.
+      camera.fov = 66;
+      camera.position.set(0.05, 5.65, 4.8);
+      game.camLook.set(0, 0.7, -1.2);
     } else {
       camera.fov = 46;
       camera.position.set(0.12, 5.85, 8.35);

@@ -97,8 +97,8 @@ python3 -m http.server 5173
 - The hall is mint/sage walls, teal pool water, grey tile rim, plus the sponsor ad row and a maroon/gold「夜貓釣蝦場」sign.
 - Shared tokens live in `data/palette.js`.
 
-Hard refresh after pull: Ctrl+Shift+R so `index.html` loads `app.js?v=camera-pan` and `styles.css?v=camera-pan`.
+Hard refresh after pull: Ctrl+Shift+R so `index.html` loads `app.js?v=pool-bigger` and `styles.css?v=pool-bigger`.
 
 ## 本機試玩
 
-見 [`PLAY.md`](PLAY.md)。`python3 -m http.server 5173` 後開 <http://127.0.0.1:5173/>（硬刷新 `?v=camera-pan`）。
+見 [`PLAY.md`](PLAY.md)。`python3 -m http.server 5173` 後開 <http://127.0.0.1:5173/>（硬刷新 `?v=pool-bigger`）。
