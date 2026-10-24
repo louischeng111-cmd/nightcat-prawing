@@ -66,4 +66,4 @@
 3. 拋竿釣魚；入簍後睇 toast／結果卡「圖鑑解鎖」「合約完成」
 4. 📋／🦐 掣開合約同圖鑑；F12 → Application → Local Storage 可清 `nightcat_prawn_progress_v1` 重測
 
-Hard refresh：而家用 `?v=pool-crop-marble`。
+Hard refresh：而家用 `?v=camera-eye-level`。

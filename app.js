@@ -602,11 +602,11 @@
     if (!camera || !game.camLook) return;
     const aspect = camera.aspect > 0 ? camera.aspect : 1;
     if (aspect < 0.9) {
-      // Straight-on portrait crops the side decks. ±32° yaw brings that side back.
-      // Front and far rims stay in frame. Pan limits are unchanged.
-      camera.fov = 58;
-      camera.position.set(0.05, 5.6, 3.3);
-      game.camLook.set(0, 0.55, -0.2);
+      // Eye-level portrait: lower camera, mild downward pitch. Side decks stay
+      // cropped at yaw 0; ±32° still brings that side in. Pan limits unchanged.
+      camera.fov = 50;
+      camera.position.set(0.05, 2.85, 5.1);
+      game.camLook.set(0, 1.1, -1);
     } else {
       camera.fov = 46;
       camera.position.set(0.12, 5.85, 8.35);
