@@ -601,10 +601,10 @@
     if (!camera || !game.camLook) return;
     const aspect = camera.aspect > 0 ? camera.aspect : 1;
     if (aspect < 0.9) {
-      // Phone inset: high view of the light hall, all four rims and the ad row.
-      camera.fov = 58;
-      camera.position.set(0.08, 6.55, 7.85);
-      game.camLook.set(0, 0.55, -0.55);
+      // Closer portrait view. Side rims stay in the inset; far ads may crop.
+      camera.fov = 61;
+      camera.position.set(0.05, 5.35, 6.45);
+      game.camLook.set(0, 0.66, -0.1);
     } else {
       camera.fov = 46;
       camera.position.set(0.12, 5.85, 8.35);
