@@ -554,7 +554,7 @@
     lidPivot.add(logoPlate);
     lidPivot.rotation.x = -0.42;
     boxG.add(lidPivot);
-    boxG.position.set(-0.55, tableY, 3.35);
+    boxG.position.set(-1.15, tableY, 2.28);
     boxG.rotation.y = 0.22;
     boxG.scale.setScalar(1.7);
     tackle.add(boxG);
@@ -587,7 +587,7 @@
     butt.rotation.z = Math.PI / 2;
     butt.position.x = xCursor - 0.02;
     spare.add(butt);
-    spare.position.set(1.35, tableY + 0.02, 3.62);
+    spare.position.set(1.85, tableY + 0.02, 2.2);
     spare.rotation.y = -0.06;
     tackle.add(spare);
 
@@ -708,12 +708,6 @@
     const floorTileTex = makeFloorTileTexture(256);
     floorTileTex.wrapS = floorTileTex.wrapT = THREE.RepeatWrapping;
     floorTileTex.repeat.set(6, 6);
-    const marbleTex = makeMarbleTexture(256);
-    marbleTex.wrapS = marbleTex.wrapT = THREE.RepeatWrapping;
-    marbleTex.repeat.set(3, 2);
-    const woodTex = makeWoodTexture(256);
-    woodTex.wrapS = woodTex.wrapT = THREE.RepeatWrapping;
-    woodTex.repeat.set(3, 1);
     const wallMetalTex = makeCorrugatedTexture(256);
     wallMetalTex.wrapS = wallMetalTex.wrapT = THREE.RepeatWrapping;
     wallMetalTex.repeat.set(8, 14);
@@ -920,7 +914,7 @@
     const freeboard = 0.46;
     const deckTop = WATER_Y + freeboard + capT;
     const capBottom = deckTop - capT;
-    const outerBottom = -0.5;
+    const outerBottom = -0.52;
     const outerTop = capBottom + 0.012;
     const outerH = outerTop - outerBottom;
     const outerCY = (outerBottom + outerTop) / 2;
@@ -932,30 +926,27 @@
     const outerHalfD = halfD + wallThick;
     game.waterY = WATER_Y;
 
-    // Same warm stone as the reference deck. Top is lighter than the vertical faces.
-    const seaBlue = 0x3a92c8;
-    const seaDeepBlue = 0x1c5f96;
-    const seaSurfaceBlue = 0x5aade0;
+    // Space 6 pool: cool grey stone cap, tiled outer wall, teal water.
+    const seaTeal = 0x0e948e;
+    const seaDeepTeal = 0x0a5e5c;
+    const seaSurfaceTeal = 0x1cbfb6;
     const capMat = new THREE.MeshStandardMaterial({
-      map: marbleTex,
-      color: 0xfff7f0,
-      roughness: 0.5,
+      color: 0xe4e8ed,
+      roughness: 0.58,
       metalness: 0.04,
     });
     const sideMat = new THREE.MeshStandardMaterial({
-      map: marbleTex,
-      color: 0xb5a898,
-      roughness: 0.78,
+      color: 0xb7bec6,
+      roughness: 0.86,
       metalness: 0.04,
     });
     const innerMat = new THREE.MeshStandardMaterial({
-      map: marbleTex,
-      color: 0xd2c6b6,
-      roughness: 0.68,
+      color: 0xc5ccd3,
+      roughness: 0.74,
       metalness: 0.03,
     });
     const linerMat = new THREE.MeshStandardMaterial({
-      color: seaDeepBlue,
+      color: seaDeepTeal,
       roughness: 0.45,
       metalness: 0.05,
     });
@@ -975,12 +966,15 @@
     }
 
     const shellW = innerW + wallThick * 2;
+    const tile = 0.4;
+    const faceLong = makePoolTileMaterial(shellW / tile, outerH / tile);
+    const faceSide = makePoolTileMaterial(innerD / tile, outerH / tile);
     // Far / near walls span the full width (they own the corners).
-    box(sideMat, shellW, outerH, wallThick, 0, outerCY, -(halfD + wallThick / 2), true);
-    box(sideMat, shellW, outerH, wallThick, 0, outerCY, halfD + wallThick / 2, true);
+    box(faceLong, shellW, outerH, wallThick, 0, outerCY, -(halfD + wallThick / 2), true);
+    box(faceLong, shellW, outerH, wallThick, 0, outerCY, halfD + wallThick / 2, true);
     // Side walls stop at the inner span so they don't z-fight the corners.
-    box(sideMat, wallThick, outerH, innerD, -(halfW + wallThick / 2), outerCY, 0, true);
-    box(sideMat, wallThick, outerH, innerD, halfW + wallThick / 2, outerCY, 0, true);
+    box(faceSide, wallThick, outerH, innerD, -(halfW + wallThick / 2), outerCY, 0, true);
+    box(faceSide, wallThick, outerH, innerD, halfW + wallThick / 2, outerCY, 0, true);
     box(sideMat, innerW, 0.12, innerD, 0, bottomY - 0.06, 0, false);
 
     // Underwater liner stops at the waterline. Above that, a mid-grey freeboard.
@@ -1001,14 +995,14 @@
     box(innerMat, fbT, fbH, innerD - 0.16, -(halfW - 0.035), fbCY, 0, true);
     box(innerMat, fbT, fbH, innerD - 0.16, halfW - 0.035, fbCY, 0, true);
 
-    const floorTile = makeTileTexture(128, "#5aade0", "#3a92c8", 8);
+    const floorTile = makeTileTexture(128, "#1cbfb6", "#0e948e", 8);
     floorTile.wrapS = floorTile.wrapT = THREE.RepeatWrapping;
     floorTile.repeat.set(5, 3);
     const tankFloor = new THREE.Mesh(
       new THREE.PlaneGeometry(innerW - 0.12, innerD - 0.12),
       new THREE.MeshStandardMaterial({
         map: floorTile,
-        color: seaBlue,
+        color: seaTeal,
         roughness: 0.8,
         metalness: 0.02,
       })
@@ -1021,14 +1015,14 @@
     // WATER VOLUME — sea blue, surface locked to WATER_Y.
     const waterDepth = Math.max(0.35, WATER_Y - (bottomY + 0.05));
     const waterVolMat = new THREE.MeshStandardMaterial({
-      color: seaBlue,
+      color: seaTeal,
       roughness: 0.28,
       metalness: 0.02,
       transparent: true,
-      opacity: 0.88,
+      opacity: 0.9,
       side: THREE.DoubleSide,
       depthWrite: false,
-      emissive: seaDeepBlue,
+      emissive: seaDeepTeal,
       emissiveIntensity: 0.05,
     });
     const waterVolume = new THREE.Mesh(
@@ -1041,14 +1035,14 @@
 
     const waterGeo = new THREE.PlaneGeometry(innerW - 0.2, innerD - 0.2, 48, 32);
     const surfaceMat = new THREE.MeshStandardMaterial({
-      color: seaSurfaceBlue,
-      roughness: 0.14,
-      metalness: 0.06,
+      color: seaSurfaceTeal,
+      roughness: 0.16,
+      metalness: 0.1,
       transparent: true,
       opacity: 0.8,
       side: THREE.DoubleSide,
       depthWrite: false,
-      emissive: seaBlue,
+      emissive: seaTeal,
       emissiveIntensity: 0.04,
     });
     waterMesh = new THREE.Mesh(waterGeo, surfaceMat);
@@ -1059,7 +1053,7 @@
 
     // Dark contact where the water meets the wall — not a bright surface rail.
     const edgeMat = new THREE.MeshStandardMaterial({
-      color: 0x1a5278,
+      color: 0x085e5c,
       roughness: 0.5,
       metalness: 0.02,
       transparent: true,
@@ -1077,58 +1071,29 @@
     waterEdge(0.04, innerD - 0.28, -(halfW - 0.12), 0);
     waterEdge(0.04, innerD - 0.28, halfW - 0.12, 0);
 
-    // Coping: light top slab, darker sides already built. Inward overhang
-    // shows the freeboard and a shadow line under the lip.
+    // One stone width on every side: outer lip → inner edge above the water.
+    // Far and near slabs own the corners; side slabs stop between those inner edges.
+    const lipOut = 0.05;
+    const rimW = wallThick + overhang + lipOut;
     const capY = (capBottom + deckTop) / 2;
-    const capOuterX = outerHalfW + 0.05;
-    const farInnerZ = -(halfD - overhang);
-    const farOuterZ = -(outerHalfD + 0.05);
-    box(
-      capMat,
-      capOuterX * 2,
-      capT,
-      Math.abs(farOuterZ - farInnerZ),
-      0,
-      capY,
-      (farInnerZ + farOuterZ) / 2,
-      true
-    );
-    const sideInnerX = halfW - overhang;
-    const sideOuterX = outerHalfW + 0.05;
-    const sideCapW = sideOuterX - sideInnerX;
-    const sideCapD = (halfD - overhang) * 2;
-    box(capMat, sideCapW, capT, sideCapD, -(sideInnerX + sideOuterX) / 2, capY, 0, true);
-    box(capMat, sideCapW, capT, sideCapD, (sideInnerX + sideOuterX) / 2, capY, 0, true);
-    // Near deck continues the coping toward the angler (tackle sits on this).
-    const deckFarZ = halfD - overhang;
-    const deckNearZ = 4.05;
-    box(capMat, capOuterX * 2, capT, deckNearZ - deckFarZ, 0, capY, (deckFarZ + deckNearZ) / 2, true);
-    const skirtTop = capBottom + 0.01;
-    const skirtH = skirtTop - outerBottom;
-    box(sideMat, shellW - 0.28, skirtH, deckNearZ - outerHalfD - 0.04, 0, (outerBottom + skirtTop) / 2, (outerHalfD + 0.03 + deckNearZ) / 2, true);
-
-    // Warm wood line on the stone, framing the opening the way the reference does.
-    const woodMat = new THREE.MeshStandardMaterial({
-      map: woodTex,
-      color: 0xc4a06a,
-      roughness: 0.55,
-      metalness: 0.02,
-    });
-    const trimY = deckTop + 0.018;
-    const trimH = 0.032;
-    const trimW = 0.08;
-    box(woodMat, innerW - 0.15, trimH, trimW, 0, trimY, farInnerZ - 0.05, false);
-    box(woodMat, innerW - 0.15, trimH, trimW, 0, trimY, deckFarZ + 0.05, false);
-    box(woodMat, trimW, trimH, sideCapD - 0.12, -(sideInnerX + 0.05), trimY, 0, false);
-    box(woodMat, trimW, trimH, sideCapD - 0.12, sideInnerX + 0.05, trimY, 0, false);
+    const innerX = halfW - overhang;
+    const innerZ = halfD - overhang;
+    const outerX = halfW + wallThick + lipOut;
+    const outerZ = halfD + wallThick + lipOut;
+    const capSpanX = outerX * 2;
+    const sideSpanZ = innerZ * 2;
+    box(capMat, capSpanX, capT, rimW, 0, capY, -(innerZ + outerZ) / 2, true);
+    box(capMat, capSpanX, capT, rimW, 0, capY, (innerZ + outerZ) / 2, true);
+    box(capMat, rimW, capT, sideSpanZ, -((innerX + outerX) / 2), capY, 0, true);
+    box(capMat, rimW, capT, sideSpanZ, (innerX + outerX) / 2, capY, 0, true);
 
     // Shadow lip under the inward overhang (top vs underside).
     const lipY = capBottom - 0.018;
     const lipT = 0.028;
-    box(lipShadowMat, innerW - 0.55, lipT, 0.07, 0, lipY, farInnerZ - 0.02, false);
-    box(lipShadowMat, innerW - 0.55, lipT, 0.07, 0, lipY, deckFarZ + 0.02, false);
-    box(lipShadowMat, 0.07, lipT, sideCapD - 0.2, -(sideInnerX + 0.02), lipY, 0, false);
-    box(lipShadowMat, 0.07, lipT, sideCapD - 0.2, sideInnerX + 0.02, lipY, 0, false);
+    box(lipShadowMat, innerW - 0.55, lipT, 0.07, 0, lipY, -(innerZ + 0.02), false);
+    box(lipShadowMat, innerW - 0.55, lipT, 0.07, 0, lipY, innerZ + 0.02, false);
+    box(lipShadowMat, 0.07, lipT, sideSpanZ - 0.2, -(innerX + 0.02), lipY, 0, false);
+    box(lipShadowMat, 0.07, lipT, sideSpanZ - 0.2, innerX + 0.02, lipY, 0, false);
 
     // Underwater air stones only (surface T-pipe removed — looked like stray bar on water)
     const bubbler = new THREE.Mesh(
@@ -1374,7 +1339,7 @@
     );
     restDot.position.set(0.12, 0.05, 0.04);
     rest.add(restDot);
-    rest.position.set(0.85, deckTop + 0.02, 3.22);
+    rest.position.set(0.35, deckTop + 0.02, 2.18);
     rest.scale.setScalar(1.45);
     rest.rotation.y = 0.08;
     scene.add(rest);
@@ -1479,6 +1444,30 @@
     const tex = new THREE.CanvasTexture(c);
     if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
     return tex;
+  }
+
+  function makePoolTileMaterial(tilesX, tilesY) {
+    const size = 128;
+    const c = document.createElement("canvas");
+    c.width = c.height = size;
+    const ctx = c.getContext("2d");
+    const grout = Math.round(size * 0.07);
+    ctx.fillStyle = "#8e959c";
+    ctx.fillRect(0, 0, size, size);
+    ctx.fillStyle = "#d4d9de";
+    ctx.fillRect(grout, grout, size - grout * 2, size - grout * 2);
+    ctx.fillStyle = "rgba(255,255,255,0.18)";
+    ctx.fillRect(grout, grout, size - grout * 2, Math.max(2, grout));
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(Math.max(1, tilesX), Math.max(1, tilesY));
+    if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+    return new THREE.MeshStandardMaterial({
+      map: tex,
+      color: 0xffffff,
+      roughness: 0.86,
+      metalness: 0.02,
+    });
   }
 
   function makeFloorTileTexture(size) {
@@ -1759,9 +1748,9 @@
         const x = pos.getX(i);
         const y = pos.getY(i);
         const z =
-          Math.sin(x * 2.1 + t * 1.6) * 0.018 +
-          Math.cos(y * 2.4 + t * 1.3) * 0.014 +
-          Math.sin((x + y) * 1.1 + t * 0.7) * 0.008;
+          Math.sin(x * 2.1 + t * 1.6) * 0.028 +
+          Math.cos(y * 2.4 + t * 1.3) * 0.02 +
+          Math.sin((x + y) * 1.1 + t * 0.7) * 0.012;
         pos.setZ(i, z);
       }
       pos.needsUpdate = true;
