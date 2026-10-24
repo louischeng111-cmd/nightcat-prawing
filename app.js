@@ -602,11 +602,11 @@
     if (!camera || !game.camLook) return;
     const aspect = camera.aspect > 0 ? camera.aspect : 1;
     if (aspect < 0.9) {
-      // Eye-level portrait: lower camera, mild downward pitch. Side decks stay
-      // cropped at yaw 0; ±32° still brings that side in. Pan limits unchanged.
+      // Between eye level and the old overhead: a bit higher, still well under 55°.
+      // Side decks stay cropped at yaw 0; ±32° still brings that side in.
       camera.fov = 50;
-      camera.position.set(0.05, 2.85, 5.1);
-      game.camLook.set(0, 1.1, -1);
+      camera.position.set(0.05, 4.15, 5);
+      game.camLook.set(0, 0.7, -0.3);
     } else {
       camera.fov = 46;
       camera.position.set(0.12, 5.85, 8.35);
