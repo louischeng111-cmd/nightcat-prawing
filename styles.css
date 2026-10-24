@@ -279,39 +279,81 @@ html, body {
 
 .top-bar {
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+  padding: calc(0.4rem + env(safe-area-inset-top, 0px)) 0.5rem 0.25rem;
+  background: linear-gradient(180deg, rgba(30, 28, 24, 0.9), rgba(30, 28, 24, 0.28) 78%, transparent);
+}
+.pill-row,
+.icon-row {
+  display: flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.55rem 0.65rem;
-  background: linear-gradient(180deg, rgba(30, 28, 24, 0.82), transparent);
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
+.pill-row::-webkit-scrollbar,
+.icon-row::-webkit-scrollbar { display: none; }
 .pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  background: rgba(42, 40, 36, 0.88);
-  border: 1px solid rgba(200, 190, 170, 0.22);
-  border-radius: 8px;
-  padding: 0.32rem 0.65rem;
-  font-size: 0.78rem;
+  gap: 0.35rem;
+  background: rgba(42, 40, 36, 0.92);
+  border: 1px solid rgba(200, 190, 170, 0.28);
+  border-radius: 12px;
+  padding: 0.4rem 0.8rem;
+  min-height: 44px;
+  font-size: 1rem;
+  line-height: 1.2;
   white-space: nowrap;
   color: var(--text-on-dark);
+  flex: 0 0 auto;
 }
 .pill strong { color: var(--amber-soft); font-weight: 700; }
-.pill.status { max-width: min(46vw, 220px); overflow: hidden; text-overflow: ellipsis; }
-.spacer { flex: 1; min-width: 0.25rem; }
+.pill.status {
+  max-width: min(72vw, 320px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.95rem;
+}
 .icon-btn {
   appearance: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  border: 1px solid rgba(200, 190, 170, 0.25);
-  background: rgba(42, 40, 36, 0.88);
+  flex: 1 0 48px;
+  width: auto;
+  min-width: 48px;
+  max-width: 64px;
+  height: 48px;
+  border-radius: 14px;
+  border: 1px solid rgba(200, 190, 170, 0.3);
+  background: rgba(42, 40, 36, 0.92);
   color: var(--text-on-dark);
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 1.4rem;
+  line-height: 1;
   display: grid;
   place-items: center;
+  padding: 0;
+}
+@media (min-width: 840px) {
+  .top-bar {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .pill-row { flex: 1 1 auto; }
+  .icon-row { flex: 0 0 auto; }
+  .pill { font-size: 0.92rem; min-height: 44px; }
+  .icon-btn {
+    flex: 0 0 44px;
+    width: 44px;
+    min-width: 44px;
+    max-width: 44px;
+    height: 44px;
+    font-size: 1.2rem;
+  }
 }
 
 .toast {
@@ -580,23 +622,31 @@ html, body {
 /* ——— Content v1: contracts + 圖鑑 (cool, not neon) ——— */
 .contract-strip {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  padding: 0 0.65rem 0.35rem;
+  flex-wrap: nowrap;
+  gap: 0.4rem;
+  padding: 0.15rem 0.5rem 0.4rem;
   max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
+.contract-strip::-webkit-scrollbar { display: none; }
 .contract-chip {
-  background: rgba(36, 40, 48, 0.82);
-  border: 1px solid rgba(180, 188, 200, 0.22);
+  background: rgba(36, 40, 48, 0.88);
+  border: 1px solid rgba(180, 188, 200, 0.28);
   color: #d8dde6;
-  border-radius: 7px;
-  padding: 0.22rem 0.55rem;
-  font-size: 0.68rem;
+  border-radius: 10px;
+  padding: 0.4rem 0.75rem;
+  min-height: 36px;
+  font-size: 0.86rem;
   letter-spacing: 0.02em;
-  max-width: min(92vw, 320px);
+  max-width: min(88vw, 360px);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
 }
 .contract-chip.done {
   border-color: rgba(70, 130, 90, 0.45);

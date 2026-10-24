@@ -499,6 +499,167 @@
   let floatBob = { phase: 0, amp: 0.015, sink: 0 };
   // game.waterY set in initScene
 
+  // Foreground tackle on the near counter (readable after the wider camera).
+  function addSeatTackle(tableY) {
+    const tackle = new THREE.Group();
+    tackle.name = "seatTackle";
+    const plastic = (color, rough, metal) =>
+      new THREE.MeshStandardMaterial({
+        color,
+        roughness: rough == null ? 0.5 : rough,
+        metalness: metal == null ? 0.06 : metal,
+      });
+
+    const towel = new THREE.Group();
+    const foldA = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.04, 0.34), plastic(0xcfc0ae, 0.92, 0));
+    foldA.position.y = 0.02;
+    towel.add(foldA);
+    const foldB = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.032, 0.3), plastic(0xb7a28e, 0.94, 0));
+    foldB.position.set(0.015, 0.052, -0.008);
+    towel.add(foldB);
+    const hem = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.006, 0.055), plastic(0x8a3034, 0.8, 0.02));
+    hem.position.set(0.015, 0.07, 0.05);
+    towel.add(hem);
+    towel.position.set(-1.85, tableY, 3.42);
+    towel.rotation.y = -0.22;
+    towel.scale.setScalar(1.85);
+    tackle.add(towel);
+
+    const bucket = new THREE.Group();
+    const bucketBody = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.155, 0.132, 0.3, 20),
+      plastic(0x2c4a38, 0.52, 0.14)
+    );
+    bucketBody.position.y = 0.15;
+    bucketBody.castShadow = true;
+    bucket.add(bucketBody);
+    const bucketRim = new THREE.Mesh(
+      new THREE.TorusGeometry(0.155, 0.012, 8, 24),
+      plastic(0x3d5c49, 0.4, 0.22)
+    );
+    bucketRim.rotation.x = Math.PI / 2;
+    bucketRim.position.y = 0.29;
+    bucket.add(bucketRim);
+    const handle = new THREE.Mesh(
+      new THREE.TorusGeometry(0.11, 0.007, 6, 16, Math.PI),
+      plastic(0xd5d8dc, 0.28, 0.78)
+    );
+    handle.rotation.y = Math.PI / 2;
+    handle.position.y = 0.36;
+    bucket.add(handle);
+    bucket.position.set(-2.55, tableY, 3.78);
+    bucket.rotation.y = 0.35;
+    bucket.scale.setScalar(1.9);
+    tackle.add(bucket);
+
+    const boxG = new THREE.Group();
+    const base = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.13, 0.36), plastic(0x6d7a52, 0.46, 0.08));
+    base.position.y = 0.065;
+    base.castShadow = true;
+    boxG.add(base);
+    const tray = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.02, 0.26), plastic(0x24261f, 0.72, 0.04));
+    tray.position.y = 0.135;
+    boxG.add(tray);
+    const lidPivot = new THREE.Group();
+    lidPivot.position.set(0, 0.14, -0.17);
+    const lid = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.028, 0.36), plastic(0x90986e, 0.4, 0.06));
+    lid.position.z = 0.18;
+    lidPivot.add(lid);
+    const label = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.006, 0.14), plastic(0xf3f0e8, 0.62, 0));
+    label.position.set(0.06, 0.02, 0.18);
+    lidPivot.add(label);
+    const labelBand = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.006, 0.032), plastic(0xb4232c, 0.5, 0.02));
+    labelBand.position.set(0.06, 0.024, 0.1);
+    lidPivot.add(labelBand);
+    lidPivot.rotation.x = -0.62;
+    boxG.add(lidPivot);
+    boxG.position.set(-0.85, tableY, 3.58);
+    boxG.rotation.y = 0.15;
+    boxG.scale.setScalar(1.75);
+    tackle.add(boxG);
+
+    const pad = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.028, 0.2), plastic(0x3e4348, 0.78, 0.06));
+    pad.position.set(0.15, tableY + 0.014, 3.82);
+    pad.scale.setScalar(1.7);
+    pad.rotation.y = -0.12;
+    tackle.add(pad);
+
+    function lyingFloat(bodyColor, bandColor, length, radius, x, z, rotY) {
+      const g = new THREE.Group();
+      const body = new THREE.Mesh(
+        new THREE.CapsuleGeometry(radius, Math.max(0.04, length - radius * 2), 4, 10),
+        plastic(bodyColor, 0.32, 0.18)
+      );
+      body.rotation.z = Math.PI / 2;
+      g.add(body);
+      if (bandColor != null) {
+        const band = new THREE.Mesh(
+          new THREE.CylinderGeometry(radius * 1.08, radius * 1.08, 0.028, 10),
+          plastic(bandColor, 0.38, 0.08)
+        );
+        band.rotation.z = Math.PI / 2;
+        g.add(band);
+      }
+      const nose = new THREE.Mesh(
+        new THREE.SphereGeometry(radius * 0.72, 8, 8),
+        plastic(0xf6f3ec, 0.3, 0.04)
+      );
+      nose.position.x = length * 0.46;
+      g.add(nose);
+      g.position.set(x, tableY + 0.03 + radius, z);
+      g.rotation.y = rotY;
+      return g;
+    }
+    const floatA = lyingFloat(0xd24a3a, 0xf4f1ea, 0.36, 0.03, 0.02, 3.86, 0.4);
+    const floatB = lyingFloat(0xe2b83a, 0x1c1e22, 0.44, 0.02, 0.28, 3.76, -0.25);
+    floatA.scale.setScalar(1.65);
+    floatB.scale.setScalar(1.65);
+    tackle.add(floatA);
+    tackle.add(floatB);
+
+    const spare = new THREE.Group();
+    const blank = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.011, 0.016, 1.2, 10),
+      plastic(0x1a1c20, 0.32, 0.5)
+    );
+    blank.rotation.z = Math.PI / 2;
+    spare.add(blank);
+    const gold = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.018, 0.018, 0.07, 10),
+      plastic(0xc9b07a, 0.38, 0.4)
+    );
+    gold.rotation.z = Math.PI / 2;
+    gold.position.x = 0.22;
+    spare.add(gold);
+    spare.position.set(1.15, tableY + 0.02, 3.98);
+    spare.rotation.y = 0.12;
+    spare.scale.setScalar(1.35);
+    tackle.add(spare);
+
+    scene.add(tackle);
+  }
+
+  // Home framing. Tall phones need a higher, wider view so the pool
+  // rectangle and the far ad wall fit; landscape can sit closer.
+  function applyHomeCamera() {
+    if (!camera || !game.camLook) return;
+    const aspect = camera.aspect > 0 ? camera.aspect : 1;
+    if (aspect < 0.9) {
+      // ~9:16 and ~20:9 portrait. fov 90 keeps the ad row inside the screen edges.
+      camera.fov = 90;
+      camera.position.set(0.1, 11.0, 6.8);
+      game.camLook.set(0, 0.25, 0.4);
+    } else {
+      // Landscape phone / desktop.
+      camera.fov = 50;
+      camera.position.set(0.15, 6.4, 8.95);
+      game.camLook.set(0, 0.6, -1.25);
+    }
+    game.camHome.copy(camera.position);
+    camera.lookAt(game.camLook);
+    camera.updateProjectionMatrix();
+  }
+
   function initScene() {
     if (typeof THREE === "undefined") {
       console.error("Three.js failed to load");
@@ -509,14 +670,16 @@
     scene = new THREE.Scene();
     // Bright warehouse prawning hall (Louis ref: light floor, ad walls; chairs removed)
     scene.background = new THREE.Color(0xd8dce2);
-    scene.fog = new THREE.Fog(0xd8dce2, 22, 48);
+    scene.fog = new THREE.Fog(0xd8dce2, 30, 78);
 
-    // Pool-dominant view, but leave a strip of far wall for 廣告位 panels
-    camera = new THREE.PerspectiveCamera(40, wrap.clientWidth / wrap.clientHeight, 0.1, 100);
-    camera.position.set(0.15, 2.7, 3.65);
-    camera.lookAt(0, 0.7, -0.55);
-    game.camHome = camera.position.clone();
-    game.camLook = new THREE.Vector3(0, 0.7, -0.55);
+    // Home pose is aspect-aware (tall phone vs landscape). See applyHomeCamera.
+    const viewW = Math.max(1, wrap.clientWidth);
+    const viewH = Math.max(1, wrap.clientHeight);
+    camera = new THREE.PerspectiveCamera(40, viewW / viewH, 0.1, 160);
+    game.camLook = new THREE.Vector3();
+    game.camHome = new THREE.Vector3();
+    applyHomeCamera();
+    const hallTop = 12.25;
 
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -560,7 +723,7 @@
     const ledPositions = [];
     for (let xi = -2; xi <= 2; xi++) {
       for (let zi = -2; zi <= 1; zi++) {
-        ledPositions.push([xi * 2.2, 3.38, zi * 2.0 + 0.2]);
+        ledPositions.push([xi * 2.2, hallTop - 0.18, zi * 2.0 + 0.4]);
       }
     }
     ledPositions.forEach(([x, y, z]) => {
@@ -595,7 +758,7 @@
     woodTex.repeat.set(3, 1);
     const wallMetalTex = makeCorrugatedTexture(256);
     wallMetalTex.wrapS = wallMetalTex.wrapT = THREE.RepeatWrapping;
-    wallMetalTex.repeat.set(6, 3);
+    wallMetalTex.repeat.set(8, 14);
 
     // Floor — light grey tiles (ref photo)
     const floor = new THREE.Mesh(
@@ -632,19 +795,22 @@
       scene.add(m);
       return m;
     }
-    wall(backWallMat, 16, 4.4, 0.18, 0, 1.55, -5.0);
-    wall(sideWallMat, 0.18, 4.4, 12, -6.2, 1.55, -0.2);
-    wall(sideWallMat, 0.18, 4.4, 12, 6.2, 1.55, -0.2);
+    // Tall hall so the pulled-back phone camera stays inside the warehouse.
+    const hallH = hallTop + 0.45;
+    const hallCY = (hallTop - 0.45) / 2;
+    wall(backWallMat, 16, hallH, 0.18, 0, hallCY, -5.0);
+    wall(sideWallMat, 0.18, hallH, 22, -6.2, hallCY, 3.0);
+    wall(sideWallMat, 0.18, hallH, 22, 6.2, hallCY, 3.0);
 
     // (removed horizontal wall rails/beams per Louis feedback)
 
     // Bright white ceiling panels
     const ceiling = new THREE.Mesh(
-      new THREE.PlaneGeometry(16, 14),
-      new THREE.MeshStandardMaterial({ color: 0xe8ecf0, roughness: 0.92 })
+      new THREE.PlaneGeometry(18, 26),
+      new THREE.MeshStandardMaterial({ color: 0xe8ecf0, roughness: 0.92, side: THREE.FrontSide })
     );
     ceiling.rotation.x = Math.PI / 2;
-    ceiling.position.y = 3.48;
+    ceiling.position.set(0, hallTop, 2.2);
     scene.add(ceiling);
 
     // ——— Ad panel placeholders (far + side walls — future paid ads) ———
@@ -886,6 +1052,10 @@
     // Sides: cover outer walls at x=±3.27
     box(ledgeMat, 1.05, 0.06, 5.0, -3.275, lipY + 0.03, 0, true);
     box(ledgeMat, 1.05, 0.06, 5.0, 3.275, lipY + 0.03, 0, true);
+    // Seat counter: near marble continues toward the angler (foreground table).
+    const counterZ = 3.62;
+    box(ledgeMat, 6.6, 0.06, 1.15, 0, lipY + 0.03, counterZ, true);
+    box(tankOuter, 6.6, 0.9, 1.12, 0, lipY + 0.03 - 0.48, counterZ, true);
     const woodMat = new THREE.MeshStandardMaterial({
       map: woodTex,
       color: 0xb89870,
@@ -1190,7 +1360,8 @@
     );
     restDot.position.set(0.12, 0.05, 0.04);
     rest.add(restDot);
-    rest.position.set(-0.35, lipY + 0.05, 2.78);
+    rest.position.set(1.55, lipY + 0.07, 3.28);
+    rest.scale.setScalar(1.45);
     rest.rotation.y = 0.08;
     scene.add(rest);
 
@@ -1223,7 +1394,8 @@
     coil.position.set(0.2, -0.05, 0);
     coil.rotation.y = Math.PI / 2;
     depthStick.add(coil);
-    depthStick.position.set(1.78, lipY + 0.16, 2.78);
+    depthStick.position.set(2.15, lipY + 0.2, 3.48);
+    depthStick.scale.setScalar(1.7);
     scene.add(depthStick);
 
     // Simple scissors
@@ -1245,7 +1417,8 @@
     const handle2 = handle1.clone();
     handle2.position.y = -0.02;
     sc.add(handle2);
-    sc.position.set(2.08, lipY + 0.14, 2.72);
+    sc.position.set(2.35, lipY + 0.1, 3.28);
+    sc.scale.setScalar(1.8);
     sc.rotation.y = 0.4;
     scene.add(sc);
 
@@ -1270,7 +1443,8 @@
     macLid.scale.set(1.35, 0.35, 0.75);
     macLid.position.y = 0.025;
     macaron.add(macLid);
-    macaron.position.set(2.22, lipY + 0.14, 2.92);
+    macaron.scale.setScalar(2.15);
+    macaron.position.set(2.05, lipY + 0.14, 3.78);
     scene.add(macaron);
     // Second empty macaron (kit vibe)
     const mac2 = macaron.clone();
@@ -1280,9 +1454,11 @@
         o.material.color.setHex(0x3ab87a);
       }
     });
-    mac2.position.set(2.38, lipY + 0.14, 2.82);
+    mac2.position.set(2.48, lipY + 0.14, 3.52);
     mac2.rotation.y = 0.4;
     scene.add(mac2);
+
+    addSeatTackle(lipY + 0.06);
 
     // No decorative shrimp in pool (Louis: 池入面嘅蝦可以唔要)
 
@@ -1618,8 +1794,8 @@
     const wrap = $("canvas-wrap");
     const w = wrap.clientWidth;
     const h = wrap.clientHeight;
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
+    camera.aspect = w / Math.max(1, h);
+    applyHomeCamera();
     renderer.setSize(w, h);
   }
 
@@ -1702,7 +1878,9 @@
       }
       const look = game.camLook || new THREE.Vector3(0, 0.7, -0.55);
       const dir = look.clone().sub(game.camHome).normalize();
-      camera.position.copy(game.camHome).add(dir.multiplyScalar(push));
+      // Home pose is farther than the original ~4.7m; keep the bite push readable.
+      const distScale = Math.min(2.4, Math.max(1, game.camHome.distanceTo(look) / 4.65));
+      camera.position.copy(game.camHome).add(dir.multiplyScalar(push * distScale));
       camera.lookAt(look);
     }
 
