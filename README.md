@@ -54,7 +54,8 @@ python3 -m http.server 5173
 | 檔案 | 用途 |
 |------|------|
 | `index.html` | 頁面結構、UI |
-| `styles.css` | 夜場霓虹風格樣式 |
+| `styles.css` | 倉庫紙感 UI（色票見 `data/palette.js`） |
+| `data/palette.js` | AU 封面共用色票（CSS + Three.js） |
 | `app.js` | Three.js 場景 + 玩法狀態機 |
 | `README.md` | 本說明 |
 | `CONTENT_V1.md` | 物種／技法／合約調數說明 |
@@ -71,7 +72,7 @@ python3 -m http.server 5173
 - 裝備／水深／池位選擇（影響就餌率、窗口、體型）
 - 物種表＋技法對應、每日合約、圖鑑（localStorage）
 - 咬鉤／揚竿「哇」時刻、月卡／夜幣商店（沙盒）、贊助牆檔期
-- 3D 室內池（程序幾何、霓虹夜場）
+- 3D 室內池（程序幾何、光猛倉庫、海藍色池水）
 - 拋竿 → 浮標晃動 → 試探 → 滅頂 → 開槍
 - 張力搏蝦（太緊斷線／太鬆走蝦）
 - 蝦簍統計（尾數、兩）
@@ -91,13 +92,13 @@ python3 -m http.server 5173
 - 需網絡載入 Google Fonts 同 Three.js CDN（可之後改自架）。
 
 ## Visual notes (2026-10-24)
-- Hall style matches bright warehouse prawning shops: light grey tiles, red plastic chairs, recessed LED ceiling, grey marble pool rim, blue wall fans.
-- Pool water stays **海藍色** (`0x2a7bb8` / `0x3a9fd0`) — not the murky green of some venue photos.
-- Far/side walls have **廣告位** placeholder panels (`makeAdPanelTexture` / `addAdPanel`) for future paid ads — swap canvas textures later.
-- Setup UI uses Zen Maru Gothic + sharper red chips (`?v=roadmap-p3`).
+- Splash + setup card stay on the AU cover (off-white, sea-blue pill, orange brush).
+- In-pool HUD follows the Space 6 reference: dark charcoal chrome, stat cards with a thin green outline, a full-width orange「開槍」button, and an orange result line above it.
+- The hall is mint/sage walls, teal pool water, grey tile rim, plus the sponsor ad row and a maroon/gold「夜貓釣蝦場」sign.
+- Shared tokens live in `data/palette.js`.
 
-Hard refresh after pull: Ctrl+Shift+R (or clear cache) so `index.html` loads `app.js?v=roadmap-p3` and `styles.css?v=roadmap-p3`.
+Hard refresh after pull: Ctrl+Shift+R so `index.html` loads `app.js?v=camera-a-bit-higher` and `styles.css?v=camera-a-bit-higher`.
 
 ## 本機試玩
 
-見 [`PLAY.md`](PLAY.md)。`python3 -m http.server 5173` 後開 <http://127.0.0.1:5173/>（硬刷新 `?v=roadmap-p3`）。
+見 [`PLAY.md`](PLAY.md)。`python3 -m http.server 5173` 後開 <http://127.0.0.1:5173/>（硬刷新 `?v=camera-a-bit-higher`）。
