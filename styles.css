@@ -1062,3 +1062,27 @@ html, body {
   font-size: 0.68rem;
   font-weight: 700;
 }
+
+/* Phone / tablet held sideways. Cover only; the layout underneath stays put. */
+.turn-portrait {
+  display: none;
+}
+@media (orientation: landscape) and (pointer: coarse) {
+  .turn-portrait {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 1.5rem;
+    background: var(--chrome);
+    color: var(--hud-text);
+    font-family: var(--font);
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-align: center;
+  }
+}
