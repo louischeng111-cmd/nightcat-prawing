@@ -6,6 +6,21 @@
   <meta name="theme-color" content="#0e1218" />
   <title>夜貓釣蝦場｜香港釣蝦模擬</title>
   <meta name="description" content="香港釣蝦場娛樂模擬器：拋竿、睇浮標、開槍、搏蝦。純娛樂，唔係真實投注。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="zh_HK" />
+  <meta property="og:site_name" content="夜貓釣蝦場" />
+  <meta property="og:title" content="夜貓釣蝦場｜香港釣蝦模擬" />
+  <meta property="og:description" content="香港釣蝦場娛樂模擬器：拋竿、睇浮標、開槍、搏蝦。純娛樂，唔係真實投注。" />
+  <meta property="og:url" content="https://louischeng111-cmd.github.io/nightcat-prawing/" />
+  <meta property="og:image" content="https://louischeng111-cmd.github.io/nightcat-prawing/covers/cover-au-daiwa-brush.jpg" />
+  <meta property="og:image:width" content="864" />
+  <meta property="og:image:height" content="1152" />
+  <meta property="og:image:alt" content="夜貓釣蝦場封面：大蝦跳出海藍色池水，紅黑蝦竿" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="夜貓釣蝦場｜香港釣蝦模擬" />
+  <meta name="twitter:description" content="香港釣蝦場娛樂模擬器：拋竿、睇浮標、開槍、搏蝦。純娛樂，唔係真實投注。" />
+  <meta name="twitter:image" content="https://louischeng111-cmd.github.io/nightcat-prawing/covers/cover-au-daiwa-brush.jpg" />
+  <link rel="preload" as="image" href="covers/cover-au-daiwa-brush.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;900&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet" />
@@ -15,8 +30,18 @@
   <div id="app">
     <div id="canvas-wrap" aria-hidden="true"></div>
 
+    <!-- Cover splash. Dismiss to the existing setup screen. -->
+    <section id="splash" class="splash" aria-label="夜貓釣蝦場">
+      <div class="splash-frame">
+        <img src="covers/cover-au-daiwa-brush.jpg" alt="夜貓釣蝦場：大蝦跳出海藍色池水，紅黑蝦竿" />
+        <button type="button" class="splash-start" id="btn-splash-start">
+          <span class="splash-start-label">開始遊戲</span>
+        </button>
+      </div>
+    </section>
+
     <!-- Setup -->
-    <section id="setup" class="screen" aria-label="揀裝備">
+    <section id="setup" class="screen" aria-label="揀裝備" aria-hidden="true" inert>
       <div class="logo">
         <div class="badge">HK INDOOR PRAWNING</div>
         <h1><span class="mark">夜貓</span>釣蝦場</h1>
