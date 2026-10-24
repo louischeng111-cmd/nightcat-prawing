@@ -602,10 +602,11 @@
     if (!camera || !game.camLook) return;
     const aspect = camera.aspect > 0 ? camera.aspect : 1;
     if (aspect < 0.9) {
-      // Larger portrait pool. Far rim and front wall stay in frame; pan is unchanged.
-      camera.fov = 66;
-      camera.position.set(0.05, 5.65, 4.8);
-      game.camLook.set(0, 0.7, -1.2);
+      // Straight-on portrait crops the side decks. ±32° yaw brings that side back.
+      // Front and far rims stay in frame. Pan limits are unchanged.
+      camera.fov = 58;
+      camera.position.set(0.05, 5.6, 3.3);
+      game.camLook.set(0, 0.55, -0.2);
     } else {
       camera.fov = 46;
       camera.position.set(0.12, 5.85, 8.35);
@@ -785,6 +786,15 @@
     const floorTileTex = makeFloorTileTexture(256);
     floorTileTex.wrapS = floorTileTex.wrapT = THREE.RepeatWrapping;
     floorTileTex.repeat.set(6, 6);
+    // pool-3d-keep-bg marble coping (b17987f). Veins are a little stronger up close.
+    const marbleTex = makeMarbleTexture(512);
+    marbleTex.wrapS = marbleTex.wrapT = THREE.RepeatWrapping;
+    marbleTex.repeat.set(3, 2);
+    const marbleBump = marbleTex.userData.bump;
+    if (marbleBump) {
+      marbleBump.wrapS = marbleBump.wrapT = THREE.RepeatWrapping;
+      marbleBump.repeat.copy(marbleTex.repeat);
+    }
     const wallMetalTex = makeCorrugatedTexture(256);
     wallMetalTex.wrapS = wallMetalTex.wrapT = THREE.RepeatWrapping;
     wallMetalTex.repeat.set(8, 14);
@@ -1003,23 +1013,29 @@
     const outerHalfD = halfD + wallThick;
     game.waterY = WATER_Y;
 
-    // Space 6 pool: cool grey stone cap, tiled outer wall, teal water.
+    // Marble cap from the recessed-pool pass. Outer walls are raised tiles. Water stays teal.
     const seaTeal = 0x0e948e;
     const seaDeepTeal = 0x0a5e5c;
     const seaSurfaceTeal = 0x1cbfb6;
     const capMat = new THREE.MeshStandardMaterial({
-      color: 0xe4e8ed,
-      roughness: 0.58,
-      metalness: 0.04,
+      map: marbleTex,
+      bumpMap: marbleBump || null,
+      bumpScale: 0.12,
+      color: 0xfff7f0,
+      roughness: 0.48,
+      metalness: 0.06,
     });
     const sideMat = new THREE.MeshStandardMaterial({
-      color: 0xb7bec6,
-      roughness: 0.86,
-      metalness: 0.04,
+      color: 0x8d847c,
+      roughness: 0.92,
+      metalness: 0.02,
     });
     const innerMat = new THREE.MeshStandardMaterial({
-      color: 0xc5ccd3,
-      roughness: 0.74,
+      map: marbleTex,
+      bumpMap: marbleBump || null,
+      bumpScale: 0.08,
+      color: 0xd2c6b6,
+      roughness: 0.68,
       metalness: 0.03,
     });
     const linerMat = new THREE.MeshStandardMaterial({
@@ -1043,15 +1059,76 @@
     }
 
     const shellW = innerW + wallThick * 2;
-    const tile = 0.4;
-    const faceLong = makePoolTileMaterial(shellW / tile, outerH / tile);
-    const faceSide = makePoolTileMaterial(innerD / tile, outerH / tile);
-    // Far / near walls span the full width (they own the corners).
-    box(faceLong, shellW, outerH, wallThick, 0, outerCY, -(halfD + wallThick / 2), true);
-    box(faceLong, shellW, outerH, wallThick, 0, outerCY, halfD + wallThick / 2, true);
-    // Side walls stop at the inner span so they don't z-fight the corners.
-    box(faceSide, wallThick, outerH, innerD, -(halfW + wallThick / 2), outerCY, 0, true);
-    box(faceSide, wallThick, outerH, innerD, halfW + wallThick / 2, outerCY, 0, true);
+    // Grout body. Raised tiles sit just outside these faces.
+    box(sideMat, shellW, outerH, wallThick, 0, outerCY, -(halfD + wallThick / 2), true);
+    box(sideMat, shellW, outerH, wallThick, 0, outerCY, halfD + wallThick / 2, true);
+    box(sideMat, wallThick, outerH, innerD, -(halfW + wallThick / 2), outerCY, 0, true);
+    box(sideMat, wallThick, outerH, innerD, halfW + wallThick / 2, outerCY, 0, true);
+    addRaisedTiles();
+
+    function addRaisedTiles() {
+      const gap = 0.016;
+      const proud = 0.022;
+      const colors = [0xe7dfd4, 0xddd4c8, 0xf3ece4, 0xe4dacf];
+      const mats = colors.map((color) => new THREE.MeshStandardMaterial({
+        color,
+        roughness: 0.56,
+        metalness: 0.05,
+      }));
+      const bevelMat = new THREE.MeshStandardMaterial({
+        color: 0xf7f2eb,
+        roughness: 0.36,
+        metalness: 0.08,
+      });
+      const spanX = shellW;
+      const spanZ = (halfD + wallThick) * 2;
+      const spanY = outerH;
+      const nX = Math.max(1, Math.round(spanX / 0.42));
+      const nZ = Math.max(1, Math.round(spanZ / 0.42));
+      const nY = Math.max(1, Math.round(spanY / 0.32));
+      const tileX = (spanX - (nX + 1) * gap) / nX;
+      const tileZ = (spanZ - (nZ + 1) * gap) / nZ;
+      const tileY = (spanY - (nY + 1) * gap) / nY;
+      const geoX = new THREE.BoxGeometry(tileX, tileY, proud);
+      const geoZ = new THREE.BoxGeometry(proud, tileY, tileZ);
+      const edgeH = Math.min(0.014, tileY * 0.09);
+      const edgeX = new THREE.BoxGeometry(tileX * 0.92, edgeH, proud * 0.45);
+      const edgeZ = new THREE.BoxGeometry(proud * 0.45, edgeH, tileZ * 0.92);
+      const zNear = halfD + wallThick + proud / 2;
+      const zFar = -(halfD + wallThick) - proud / 2;
+      const xRight = halfW + wallThick + proud / 2;
+      const xLeft = -(halfW + wallThick) - proud / 2;
+      const y0 = outerBottom + gap + tileY / 2;
+      const x0 = -spanX / 2 + gap + tileX / 2;
+      const z0 = -spanZ / 2 + gap + tileZ / 2;
+
+      function place(geo, edgeGeo, x, y, z, nx, nz, slot) {
+        const tile = new THREE.Mesh(geo, mats[slot % mats.length]);
+        tile.position.set(x, y, z);
+        tile.castShadow = true;
+        tile.receiveShadow = true;
+        poolGroup.add(tile);
+        const lip = new THREE.Mesh(edgeGeo, bevelMat);
+        lip.position.set(x + nx * proud * 0.28, y + tileY * 0.4, z + nz * proud * 0.28);
+        poolGroup.add(lip);
+      }
+
+      for (let iy = 0; iy < nY; iy++) {
+        const y = y0 + iy * (tileY + gap);
+        for (let ix = 0; ix < nX; ix++) {
+          const x = x0 + ix * (tileX + gap);
+          const slot = (ix + iy * 2) % mats.length;
+          place(geoX, edgeX, x, y, zNear, 0, 1, slot);
+          place(geoX, edgeX, x, y, zFar, 0, -1, slot + 1);
+        }
+        for (let iz = 0; iz < nZ; iz++) {
+          const z = z0 + iz * (tileZ + gap);
+          const slot = (iz + iy) % mats.length;
+          place(geoZ, edgeZ, xRight, y, z, 1, 0, slot);
+          place(geoZ, edgeZ, xLeft, y, z, -1, 0, slot + 2);
+        }
+      }
+    }
     box(sideMat, innerW, 0.12, innerD, 0, bottomY - 0.06, 0, false);
 
     // Underwater liner stops at the waterline. Above that, a mid-grey freeboard.
@@ -1475,29 +1552,59 @@
     const c = document.createElement("canvas");
     c.width = c.height = size;
     const ctx = c.getContext("2d");
+    const bumpCanvas = document.createElement("canvas");
+    bumpCanvas.width = bumpCanvas.height = size;
+    const bx = bumpCanvas.getContext("2d");
     ctx.fillStyle = "#e6ddd2";
     ctx.fillRect(0, 0, size, size);
-    // Warm stone veins, matching the light coping in the reference.
-    for (let i = 0; i < 18; i++) {
-      ctx.strokeStyle = `rgba(${110 + Math.random() * 30},${102 + Math.random() * 24},${92 + Math.random() * 20},${0.16 + Math.random() * 0.16})`;
-      ctx.lineWidth = 2 + Math.random() * 4;
+    bx.fillStyle = "rgb(168,168,168)";
+    bx.fillRect(0, 0, size, size);
+    function vein(width, color, bumpColor) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      bx.strokeStyle = bumpColor;
+      bx.lineWidth = width;
       ctx.beginPath();
+      bx.beginPath();
       let x = Math.random() * size;
       let y = 0;
       ctx.moveTo(x, y);
+      bx.moveTo(x, y);
       while (y < size) {
-        x += (Math.random() - 0.5) * 30;
-        y += 8 + Math.random() * 12;
+        x += (Math.random() - 0.5) * 36;
+        y += 8 + Math.random() * 14;
         ctx.lineTo(x, y);
+        bx.lineTo(x, y);
       }
       ctx.stroke();
+      bx.stroke();
     }
-    for (let i = 0; i < 200; i++) {
-      ctx.fillStyle = "rgba(255,255,255,0.03)";
-      ctx.fillRect(Math.random() * size, Math.random() * size, 3, 3);
+    // Same warm coping as pool-3d-keep-bg, with broader veins so the slab reads up close.
+    for (let i = 0; i < 8; i++) {
+      const a = 0.2 + Math.random() * 0.18;
+      vein(7 + Math.random() * 9, `rgba(112,98,86,${a})`, "rgba(70,70,70,0.85)");
+    }
+    for (let i = 0; i < 16; i++) {
+      const a = 0.22 + Math.random() * 0.2;
+      vein(
+        1.5 + Math.random() * 3.5,
+        `rgba(${96 + Math.random() * 28},${88 + Math.random() * 22},${78 + Math.random() * 18},${a})`,
+        "rgba(55,55,55,0.7)"
+      );
+    }
+    for (let i = 0; i < 6; i++) {
+      vein(2 + Math.random() * 3, "rgba(255,252,247,0.35)", "rgba(230,230,230,0.8)");
+    }
+    for (let i = 0; i < 240; i++) {
+      const x = Math.random() * size;
+      const y = Math.random() * size;
+      ctx.fillStyle = "rgba(255,255,255,0.045)";
+      ctx.fillRect(x, y, 3, 3);
     }
     const tex = new THREE.CanvasTexture(c);
+    const bump = new THREE.CanvasTexture(bumpCanvas);
     if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+    tex.userData.bump = bump;
     return tex;
   }
 
