@@ -117,6 +117,7 @@
   // DOM
   const $ = (id) => document.getElementById(id);
   const setupEl = $("setup");
+  const splashEl = $("splash");
   const hudEl = $("hud");
   const toastEl = $("toast");
   const biteFlash = $("bite-flash");
@@ -2231,6 +2232,19 @@
   }
 
   // ——— Wire UI ———
+  function hideSplash() {
+    if (!splashEl || splashEl.classList.contains("hidden")) return;
+    splashEl.classList.add("hidden");
+    splashEl.setAttribute("aria-hidden", "true");
+    setupEl.removeAttribute("aria-hidden");
+    setupEl.removeAttribute("inert");
+    const startBtn = $("btn-start");
+    if (startBtn) startBtn.focus();
+  }
+  if (splashEl) {
+    splashEl.addEventListener("click", hideSplash);
+  }
+
   $("btn-start").addEventListener("click", () => {
     setupEl.classList.add("hidden");
     hudEl.classList.remove("hidden");
@@ -2264,6 +2278,11 @@
   btnStrike.addEventListener("pointercancel", () => strikeUp());
 
   window.addEventListener("keydown", (e) => {
+    if (splashEl && !splashEl.classList.contains("hidden") && (e.code === "Enter" || e.code === "Space")) {
+      e.preventDefault();
+      hideSplash();
+      return;
+    }
     if (e.code === "Space") {
       e.preventDefault();
       if (e.repeat) {
@@ -2335,6 +2354,7 @@
   // Optional: &panel=contracts|dex opens that modal after start
   const __params = new URLSearchParams(location.search);
   if (__params.get("autostart") === "1") {
+    hideSplash();
     requestAnimationFrame(() => {
       $("btn-start").click();
       setTimeout(() => {
