@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0e1218" />
+  <title>夜貓釣蝦場｜香港釣蝦模擬</title>
+  <meta name="description" content="香港釣蝦場娛樂模擬器：拋竿、睇浮標、開槍、搏蝦。純娛樂，唔係真實投注。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;900&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <div id="canvas-wrap" aria-hidden="true"></div>
+
+    <!-- Setup -->
+    <section id="setup" class="screen" aria-label="揀裝備">
+      <div class="logo">
+        <div class="badge">HK INDOOR PRAWNING</div>
+        <h1><span class="mark">夜貓</span>釣蝦場</h1>
+        <p>香港室內釣蝦場 · 寫實娛樂模擬</p>
+      </div>
+      <div class="setup-card">
+        <div class="setup-section">
+          <h2>1. 蝦竿</h2>
+          <div class="option-row cols-3" id="opt-rod" role="listbox" aria-label="釣竿"></div>
+        </div>
+        <div class="setup-section">
+          <h2>2. 阿波／標</h2>
+          <div class="option-row cols-3" id="opt-float" role="listbox" aria-label="浮標"></div>
+        </div>
+        <div class="setup-section">
+          <h2>3. 餌</h2>
+          <div class="option-row cols-3" id="opt-bait" role="listbox" aria-label="餌"></div>
+        </div>
+        <div class="setup-section">
+          <h2>4. 水深</h2>
+          <div class="option-row cols-3" id="opt-depth" role="listbox" aria-label="水深"></div>
+        </div>
+        <div class="setup-section">
+          <h2>5. 池位</h2>
+          <div class="option-row cols-3" id="opt-seat" role="listbox" aria-label="池位"></div>
+        </div>
+        <button type="button" class="btn btn-primary" id="btn-start">入場開釣</button>
+        <p class="disclaimer">娛樂模擬，唔係真實投注 · 同任何釣蝦場／彩票無關</p>
+      </div>
+    </section>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden" aria-live="polite">
+      <div class="top-bar">
+        <span class="pill" id="pill-basket" title="蝦簍">🧺 <strong id="basket-count">0</strong> 尾 · <strong id="basket-weight">0.0</strong> 兩</span>
+        <span class="pill" id="pill-dex" title="圖鑑">📖圖鑑 <strong id="dex-count">0/6</strong></span>
+        <span class="pill" id="pill-coins" title="夜幣">🪙 <strong id="coin-count">0</strong></span>
+        <span class="pill status" id="pill-status">待命</span>
+        <span class="spacer"></span>
+        <button type="button" class="icon-btn" id="btn-shop" title="商店／月卡">🛒</button>
+        <button type="button" class="icon-btn" id="btn-contracts" title="今日合約">📋</button>
+        <button type="button" class="icon-btn" id="btn-dex" title="圖鑑">🦐</button>
+        <button type="button" class="icon-btn" id="btn-boss" title="老闆冇蝦啊">📢</button>
+        <button type="button" class="icon-btn" id="btn-sound" title="聲效" aria-pressed="false">🔇</button>
+        <button type="button" class="icon-btn" id="btn-guide" title="操作說明">📖</button>
+        <button type="button" class="icon-btn" id="btn-basket" title="蝦簍">🧺</button>
+      </div>
+      <div class="contract-strip" id="contract-strip" aria-label="今日合約"></div>
+      <div class="toast" id="toast" role="status"></div>
+      <div class="bite-flash" id="bite-flash">滅頂！快開槍！</div>
+      <div class="wow-stamp" id="wow-stamp" aria-hidden="true"></div>
+      <div class="tension-wrap" id="tension-wrap">
+        <div class="tension-label">線張力 · <span id="tension-state">適中</span></div>
+        <div class="tension-bar"><div class="tension-fill" id="tension-fill"></div></div>
+        <div class="tension-hint" id="tension-hint">按住「開槍」拉緊 · 鬆開放線</div>
+      </div>
+      <div class="bottom-bar">
+        <button type="button" class="btn btn-action" id="btn-cast">拋竿</button>
+        <button type="button" class="btn btn-action" id="btn-tease" disabled>逗蝦</button>
+        <button type="button" class="btn btn-action fire" id="btn-strike" disabled>開槍</button>
+      </div>
+    </div>
+
+    <div class="boss-banner" id="boss-banner" role="status">
+      <strong>老闆：「得啦得啦，即刻倒蝦！」</strong>
+      <span>活蝦入池，就餌率短暫上升 · 撳呢度關閉</span>
+    </div>
+
+    <p class="tiny-foot">娛樂模擬 · 唔係真實投注</p>
+
+    <!-- Guide -->
+    <div class="modal-backdrop hidden" id="modal-guide" role="dialog" aria-modal="true" aria-labelledby="guide-title">
+      <div class="modal">
+        <h3 id="guide-title">操作說明</h3>
+        <ol>
+          <li>撳「拋竿」將餌落水，盯住水面浮標。</li>
+          <li>浮標會試探點動；真正「滅頂」（沉落水）就即刻「開槍」或撳空白鍵。</li>
+          <li>搏蝦時按住「開槍」拉緊、鬆開放線；張力太高斷線，太低走蝦。</li>
+          <li>「逗蝦」輕提一下，有機會催促就餌。</li>
+          <li>「📢」叫老闆倒蝦，短暫提升活躍度。</li>
+          <li>入場前揀水深：淺／中／深會影響邊種蝦較易上鉤。</li>
+          <li>📋 今日合約、🦐 圖鑑會跟住你嘅漁獲更新（本地存檔）。</li>
+          <li>🛒 商店用夜幣買外觀／便利；月卡係沙盒解鎖，唔加咬口。</li>
+        </ol>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="btn-guide-close" style="width:auto">明白</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Basket -->
+    <div class="modal-backdrop hidden" id="modal-basket" role="dialog" aria-modal="true" aria-labelledby="basket-title">
+      <div class="modal">
+        <h3 id="basket-title">蝦簍</h3>
+        <div class="basket-stats">
+          <div><span class="n" id="modal-count">0</span><span class="l">尾數</span></div>
+          <div><span class="n" id="modal-weight">0.0</span><span class="l">總重（兩）</span></div>
+        </div>
+        <ul class="basket-list" id="basket-list"></ul>
+        <div class="actions">
+          <button type="button" class="btn btn-ghost" id="btn-basket-close">關閉</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contracts -->
+    <div class="modal-backdrop hidden" id="modal-contracts" role="dialog" aria-modal="true" aria-labelledby="contracts-title">
+      <div class="modal">
+        <h3 id="contracts-title">今日合約</h3>
+        <ul class="contract-list" id="contracts-list"></ul>
+        <p class="modal-note">每日刷新 · 完成只係進度，唔會課金</p>
+        <div class="actions">
+          <button type="button" class="btn btn-ghost" id="btn-contracts-close">關閉</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dex / 圖鑑 -->
+    <div class="modal-backdrop hidden" id="modal-dex" role="dialog" aria-modal="true" aria-labelledby="dex-title">
+      <div class="modal modal-wide">
+        <h3 id="dex-title">蝦類圖鑑</h3>
+        <div class="dex-grid" id="dex-grid"></div>
+        <p class="modal-note">首次入簍先解鎖 · 本地存檔</p>
+        <div class="actions">
+          <button type="button" class="btn btn-ghost" id="btn-dex-close">關閉</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shop / Pass -->
+    <div class="modal-backdrop hidden" id="modal-shop" role="dialog" aria-modal="true" aria-labelledby="shop-title">
+      <div class="modal modal-wide">
+        <h3 id="shop-title">商店 · 夜幣／月卡</h3>
+        <p class="modal-note">沙盒試買 · 唔係真實收費 · <strong>唔賣咬鉤機率</strong></p>
+        <div class="shop-pass" id="shop-pass"></div>
+        <h4 class="shop-sub">夜幣商品</h4>
+        <div class="shop-grid" id="shop-grid"></div>
+        <p class="modal-note" id="shop-balance">夜幣：0</p>
+        <div class="actions">
+          <button type="button" class="btn btn-ghost" id="btn-shop-close">關閉</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div class="modal-backdrop hidden" id="modal-result" role="dialog" aria-modal="true">
+      <div class="modal">
+        <div class="result-card" id="result-card"></div>
+        <div class="actions" style="justify-content:center">
+          <button type="button" class="btn btn-primary" id="btn-result-ok" style="width:auto;min-width:140px">繼續開釣</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="vendor/three.min.js"></script>
+  <script src="data/species.js"></script>
+  <script src="data/techniques.js"></script>
+  <script src="data/progress.js"></script>
+  <script src="data/shop.js"></script>
+  <script src="data/sponsors.js"></script>
+  <script src="data/wow.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
