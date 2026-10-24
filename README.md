@@ -54,7 +54,8 @@ python3 -m http.server 5173
 | 檔案 | 用途 |
 |------|------|
 | `index.html` | 頁面結構、UI |
-| `styles.css` | 夜場霓虹風格樣式 |
+| `styles.css` | 倉庫紙感 UI（色票見 `data/palette.js`） |
+| `data/palette.js` | AU 封面共用色票（CSS + Three.js） |
 | `app.js` | Three.js 場景 + 玩法狀態機 |
 | `README.md` | 本說明 |
 | `CONTENT_V1.md` | 物種／技法／合約調數說明 |
@@ -71,7 +72,7 @@ python3 -m http.server 5173
 - 裝備／水深／池位選擇（影響就餌率、窗口、體型）
 - 物種表＋技法對應、每日合約、圖鑑（localStorage）
 - 咬鉤／揚竿「哇」時刻、月卡／夜幣商店（沙盒）、贊助牆檔期
-- 3D 室內池（程序幾何、霓虹夜場）
+- 3D 室內池（程序幾何、光猛倉庫、海藍色池水）
 - 拋竿 → 浮標晃動 → 試探 → 滅頂 → 開槍
 - 張力搏蝦（太緊斷線／太鬆走蝦）
 - 蝦簍統計（尾數、兩）
@@ -91,13 +92,14 @@ python3 -m http.server 5173
 - 需網絡載入 Google Fonts 同 Three.js CDN（可之後改自架）。
 
 ## Visual notes (2026-10-24)
-- Hall style matches bright warehouse prawning shops: light grey tiles, red plastic chairs, recessed LED ceiling, grey marble pool rim, blue wall fans.
-- Pool water stays **海藍色** (`0x2a7bb8` / `0x3a9fd0`) — not the murky green of some venue photos.
-- Far/side walls have **廣告位** placeholder panels (`makeAdPanelTexture` / `addAdPanel`) for future paid ads — swap canvas textures later.
-- Setup UI uses Zen Maru Gothic + sharper red chips (`?v=roadmap-p3`).
+- Hall style matches the locked AU splash: plain off-white walls, soft overhead light, sea-blue pool, Daiwa-like red/black rod. Not a neon nightclub.
+- Shared tokens live in `data/palette.js` (sampled from `covers/cover-au-daiwa-brush.jpg`) and drive both CSS variables and Three.js materials.
+- Pool water stays **海藍色** (`NightcatPalette.sea` / `seaSurface`, about `#1f6aa8` / `#3a8ec4`) — not murky green and not teal neon.
+- Far/side walls keep **廣告位** panels (`makeAdPanelTexture` / `addAdPanel`) for paid ads.
+- Setup, HUD, and result cards use paper chips, black type, and an orange brush edge for emphasis.
 
-Hard refresh after pull: Ctrl+Shift+R (or clear cache) so `index.html` loads `app.js?v=roadmap-p3` and `styles.css?v=roadmap-p3`.
+Hard refresh after pull: Ctrl+Shift+R so `index.html` loads `app.js?v=au-warehouse` and `styles.css?v=au-warehouse`.
 
 ## 本機試玩
 
-見 [`PLAY.md`](PLAY.md)。`python3 -m http.server 5173` 後開 <http://127.0.0.1:5173/>（硬刷新 `?v=roadmap-p3`）。
+見 [`PLAY.md`](PLAY.md)。`python3 -m http.server 5173` 後開 <http://127.0.0.1:5173/>（硬刷新 `?v=au-warehouse`）。

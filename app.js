@@ -5,6 +5,26 @@
 (function () {
   "use strict";
 
+  // AU cover palette (data/palette.js). Fallbacks match that file.
+  const Pal = window.NightcatPalette || {
+    wall: 0xe8e2dc,
+    wallDeep: 0xd9d3cc,
+    ink: 0x161311,
+    brush: 0xe06a22,
+    sea: 0x1f6aa8,
+    seaBright: 0x2f86c0,
+    seaDeep: 0x143656,
+    seaSurface: 0x3a8ec4,
+    seaHighlight: 0x4a9ad4,
+    rodRed: 0xc51628,
+    rodBlack: 0x1a1c20,
+    claw: 0xe25a1c,
+    prawn: 0x8d5a34,
+    prawnDark: 0x6a3e24,
+    prawnShell: 0xc4895a,
+    hex: function (n) { return "#" + n.toString(16).padStart(6, "0"); },
+  };
+
   // ——— Equipment data ———
   const RODS = [
     { id: "hard", name: "硬調蝦竿 · 6尺", desc: "尾一反應快，窗口窄少少", windowMul: 0.9, fightEase: 0.95 },
@@ -540,17 +560,17 @@
     // Telescopic shrimp rod lying on the counter (not the angler's held rod).
     const spare = new THREE.Group();
     const segments = [
-      [0.006, 0.008, 0.34, 0x1c1e22],
-      [0.008, 0.01, 0.32, 0x1c1e22],
-      [0.01, 0.012, 0.3, 0xc9b07a],
-      [0.012, 0.015, 0.32, 0x1c1e22],
-      [0.015, 0.018, 0.36, 0x2a241c],
+      [0.006, 0.008, 0.34, Pal.rodBlack],
+      [0.008, 0.01, 0.32, Pal.rodBlack],
+      [0.01, 0.012, 0.3, Pal.rodRed],
+      [0.012, 0.015, 0.32, Pal.rodBlack],
+      [0.015, 0.018, 0.36, Pal.rodBlack],
     ];
     let xCursor = 0.82;
     segments.forEach(([rA, rB, len, color]) => {
       const seg = new THREE.Mesh(
         new THREE.CylinderGeometry(rA, rB, len, 10),
-        plastic(color, color === 0xc9b07a ? 0.36 : 0.34, color === 0xc9b07a ? 0.42 : 0.48)
+        plastic(color, color === Pal.rodRed ? 0.38 : 0.34, color === Pal.rodRed ? 0.22 : 0.48)
       );
       seg.rotation.z = Math.PI / 2;
       seg.position.x = xCursor - len / 2;
@@ -602,9 +622,9 @@
     }
     const wrap = $("canvas-wrap");
     scene = new THREE.Scene();
-    // Bright warehouse prawning hall (Louis ref: light floor, ad walls; chairs removed)
-    scene.background = new THREE.Color(0xd8dce2);
-    scene.fog = new THREE.Fog(0xd8dce2, 30, 78);
+    // Bright warehouse hall — off-white walls from the AU cover, not a night club.
+    scene.background = new THREE.Color(Pal.wall);
+    scene.fog = new THREE.Fog(Pal.wall, 32, 82);
 
     // Home pose is aspect-aware (tall phone vs landscape). See applyHomeCamera.
     const viewW = Math.max(1, wrap.clientWidth);
@@ -625,12 +645,12 @@
     }
     wrap.appendChild(renderer.domElement);
 
-    // ——— Bright hall lighting (光猛) ———
-    const hemi = new THREE.HemisphereLight(0xffffff, 0xb0b4bc, 0.95);
+    // ——— Warehouse lighting: warm overhead key, soft shadows, cool fill ———
+    const hemi = new THREE.HemisphereLight(0xfff8f2, 0xe7e2da, 1.15);
     scene.add(hemi);
-    const amb = new THREE.AmbientLight(0xf0f2f6, 0.55);
+    const amb = new THREE.AmbientLight(0xf7f4ef, 0.72);
     scene.add(amb);
-    const key = new THREE.DirectionalLight(0xffffff, 0.85);
+    const key = new THREE.DirectionalLight(0xfff6ee, 0.9);
     key.position.set(2.5, 8, 3);
     key.castShadow = true;
     key.shadow.mapSize.set(1024, 1024);
@@ -642,7 +662,7 @@
     key.shadow.camera.bottom = -7;
     key.shadow.bias = -0.0008;
     scene.add(key);
-    const fill = new THREE.DirectionalLight(0xe8eef8, 0.4);
+    const fill = new THREE.DirectionalLight(0xeef3f8, 0.4);
     fill.position.set(-3, 5, -2);
     scene.add(fill);
 
@@ -667,13 +687,13 @@
       const panel = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.03, 0.78), ledPanelMat);
       panel.position.set(x, y - 0.02, z);
       scene.add(panel);
-      const pl = new THREE.PointLight(0xfffaf0, 0.55, 9, 2);
+      const pl = new THREE.PointLight(0xfffaf0, 0.46, 10, 2);
       pl.position.set(x, y - 0.35, z);
       scene.add(pl);
     });
 
-    // Soft water fill (keep sea-blue read)
-    const waterFill = new THREE.PointLight(0x5eb8e8, 0.35, 9, 2);
+    // Soft sea-blue bounce off the pool (not a teal neon wash)
+    const waterFill = new THREE.PointLight(Pal.seaBright, 0.28, 10, 2);
     waterFill.position.set(0, 2.0, 0.2);
     scene.add(waterFill);
 
@@ -699,7 +719,7 @@
       new THREE.PlaneGeometry(24, 24),
       new THREE.MeshStandardMaterial({
         map: floorTileTex,
-        color: 0xc8ccd2,
+        color: 0xf3f1ee,
         roughness: 0.88,
         metalness: 0.02,
       })
@@ -712,14 +732,18 @@
     // Grey industrial walls (corrugated metal look)
     const backWallMat = new THREE.MeshStandardMaterial({
       map: wallMetalTex,
-      color: 0x9aa0a8,
-      roughness: 0.72,
-      metalness: 0.18,
+      color: 0xffffff,
+      roughness: 0.92,
+      metalness: 0.0,
+      emissive: Pal.wall,
+      emissiveIntensity: 0.18,
     });
     const sideWallMat = new THREE.MeshStandardMaterial({
-      color: 0xa8aeb6,
-      roughness: 0.78,
-      metalness: 0.08,
+      color: 0xf6f3ee,
+      roughness: 0.94,
+      metalness: 0.0,
+      emissive: Pal.wall,
+      emissiveIntensity: 0.16,
     });
     function wall(mat, w, h, d, x, y, z) {
       const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
@@ -741,7 +765,7 @@
     // Bright white ceiling panels
     const ceiling = new THREE.Mesh(
       new THREE.PlaneGeometry(18, 26),
-      new THREE.MeshStandardMaterial({ color: 0xe8ecf0, roughness: 0.92, side: THREE.FrontSide })
+      new THREE.MeshStandardMaterial({ color: 0xf4f1ec, roughness: 0.92, side: THREE.FrontSide })
     );
     ceiling.rotation.x = Math.PI / 2;
     ceiling.position.set(0, hallTop, 2.2);
@@ -758,8 +782,8 @@
         map: tex,
         roughness: 0.55,
         metalness: 0.05,
-        emissive: 0x333333,
-        emissiveIntensity: 0.28,
+        emissive: 0x000000,
+        emissiveIntensity: 0,
       });
       const frame = new THREE.Mesh(
         new THREE.BoxGeometry(w + 0.08, h + 0.08, 0.03),
@@ -800,10 +824,10 @@
     const scoreBoard = new THREE.Mesh(
       new THREE.BoxGeometry(0.55, 0.28, 0.05),
       new THREE.MeshStandardMaterial({
-        color: 0x111114,
-        emissive: 0x22aa44,
-        emissiveIntensity: 0.35,
-        roughness: 0.4,
+        color: Pal.ink,
+        emissive: Pal.sea,
+        emissiveIntensity: 0.12,
+        roughness: 0.5,
       })
     );
 
@@ -859,7 +883,7 @@
       metalness: 0.2,
     });
     const linerMat = new THREE.MeshStandardMaterial({
-      color: 0x1a4060,
+      color: Pal.seaDeep,
       roughness: 0.4,
       metalness: 0.05,
     });
@@ -888,14 +912,14 @@
     box(linerMat, wallT, wallH, tankD, -tankW / 2 - wallT / 2, iY, 0, false);
     box(linerMat, wallT, wallH, tankD, tankW / 2 + wallT / 2, iY, 0, false);
 
-    const floorTile = makeTileTexture(128, "#1a4a70", "#143858", 8);
+    const floorTile = makeTileTexture(128, Pal.hex(Pal.seaBright), Pal.hex(Pal.sea), 8);
     floorTile.wrapS = floorTile.wrapT = THREE.RepeatWrapping;
     floorTile.repeat.set(5, 3);
     const tankFloor = new THREE.Mesh(
       new THREE.PlaneGeometry(tankW - 0.02, tankD - 0.02),
       new THREE.MeshStandardMaterial({
         map: floorTile,
-        color: 0x1a4a70,
+        color: Pal.sea,
         roughness: 0.8,
         metalness: 0.02,
       })
@@ -908,15 +932,15 @@
     // WATER VOLUME — translucent 海藍色 body (KEEP)
     const waterDepth = Math.max(0.35, WATER_Y - (bottomY + 0.05));
     const waterVolMat = new THREE.MeshStandardMaterial({
-      color: 0x2a7bb8,
-      roughness: 0.15,
-      metalness: 0.08,
+      color: Pal.seaBright,
+      roughness: 0.16,
+      metalness: 0.04,
       transparent: true,
-      opacity: 0.48,
+      opacity: 0.72,
       side: THREE.DoubleSide,
       depthWrite: false,
-      emissive: 0x0a3a68,
-      emissiveIntensity: 0.28,
+      emissive: Pal.sea,
+      emissiveIntensity: 0.16,
     });
     const waterVolume = new THREE.Mesh(
       new THREE.BoxGeometry(tankW - 0.08, waterDepth, tankD - 0.08),
@@ -929,15 +953,15 @@
     // WATER SURFACE — sea-blue film + ripple (KEEP)
     const waterGeo = new THREE.PlaneGeometry(tankW - 0.1, tankD - 0.1, 48, 32);
     const surfaceMat = new THREE.MeshStandardMaterial({
-      color: 0x3a9fd0,
-      roughness: 0.04,
-      metalness: 0.35,
+      color: Pal.seaHighlight,
+      roughness: 0.06,
+      metalness: 0.18,
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.62,
       side: THREE.DoubleSide,
       depthWrite: false,
-      emissive: 0x1a6aa0,
-      emissiveIntensity: 0.25,
+      emissive: Pal.seaBright,
+      emissiveIntensity: 0.1,
     });
     waterMesh = new THREE.Mesh(waterGeo, surfaceMat);
     waterMesh.rotation.x = -Math.PI / 2;
@@ -946,13 +970,13 @@
     poolGroup.add(waterMesh);
 
     const edgeMat = new THREE.MeshStandardMaterial({
-      color: 0x7ec8e8,
-      roughness: 0.2,
-      metalness: 0.15,
+      color: 0x9ec4e0,
+      roughness: 0.22,
+      metalness: 0.08,
       transparent: true,
-      opacity: 0.7,
-      emissive: 0x2a80b0,
-      emissiveIntensity: 0.18,
+      opacity: 0.62,
+      emissive: Pal.seaBright,
+      emissiveIntensity: 0.05,
       depthWrite: false,
     });
     function waterEdge(w, d, x, z) {
@@ -969,7 +993,7 @@
     // Grey marble-pattern rim (ref photo)
     const ledgeMat = new THREE.MeshStandardMaterial({
       map: marbleTex,
-      color: 0xb0b4bc,
+      color: 0xe4e0da,
       roughness: 0.4,
       metalness: 0.08,
     });
@@ -1001,12 +1025,12 @@
     box(woodMat, 0.12, 0.04, 4.1, -3.0, lipY + 0.05, 0, false);
     box(woodMat, 0.12, 0.04, 4.1, 3.0, lipY + 0.05, 0, false);
 
-    // Subtle under-ledge cool strip (not arcade neon)
+    // Faint under-ledge cool strip — reflected pool light, not a neon tube.
     const ledMat = new THREE.MeshStandardMaterial({
-      color: 0x4aa8e8,
-      emissive: 0x2a80d8,
-      emissiveIntensity: 0.45,
-      roughness: 0.4,
+      color: Pal.seaBright,
+      emissive: Pal.sea,
+      emissiveIntensity: 0.1,
+      roughness: 0.55,
     });
     function ledStrip(w, d, x, z) {
       const s = new THREE.Mesh(new THREE.BoxGeometry(w, 0.025, d), ledMat);
@@ -1094,7 +1118,7 @@
       taper.position.y = -bodyH * 0.55;
       g.add(taper);
 
-      // Neon tip dome + thin black rings + white separator
+      // Fluorescent tip dome + thin black rings + white separator
       const tipDome = new THREE.Mesh(new THREE.SphereGeometry(bodyR * 0.95, 12, 10), tipMat);
       tipDome.scale.set(1, 0.85, 1);
       tipDome.position.y = bodyH * 0.55;
@@ -1154,11 +1178,11 @@
       scene.add(floatMesh);
     };
 
-    // ——— 7-piece telescopic HAND shrimp rod ~210cm look (no reel; V3 desert-gold accents) ———
+    // ——— 7-piece telescopic HAND shrimp rod ~210cm (no reel; Daiwa-like red/black) ———
     rodTip = new THREE.Group();
-    const carbon = new THREE.MeshStandardMaterial({ color: 0x1a1c20, roughness: 0.28, metalness: 0.55 });
-    const carbonTip = new THREE.MeshStandardMaterial({ color: 0x262a30, roughness: 0.3, metalness: 0.5 });
-    const desertGold = new THREE.MeshStandardMaterial({ color: 0xc9b07a, roughness: 0.32, metalness: 0.48 });
+    const carbon = new THREE.MeshStandardMaterial({ color: Pal.rodBlack, roughness: 0.28, metalness: 0.55 });
+    const carbonTip = new THREE.MeshStandardMaterial({ color: 0x2a2e34, roughness: 0.3, metalness: 0.5 });
+    const rodRedBand = new THREE.MeshStandardMaterial({ color: Pal.rodRed, roughness: 0.38, metalness: 0.22 });
     const gripMat = new THREE.MeshStandardMaterial({ color: 0x2a241c, roughness: 0.82 });
     const ringChrome = new THREE.MeshStandardMaterial({ color: 0xd0d4da, metalness: 0.88, roughness: 0.22 });
     const buttCapMat = new THREE.MeshStandardMaterial({ color: 0xa8adb6, metalness: 0.9, roughness: 0.2 });
@@ -1176,8 +1200,8 @@
       [0.0022, 0.0035, 0.32, carbonTip],  // 1 tip (尾一 soft)
       [0.0035, 0.005, 0.30, carbon],      // 2
       [0.005, 0.0065, 0.30, carbon],      // 3
-      [0.0065, 0.0085, 0.30, desertGold], // 4 champagne mid
-      [0.0085, 0.011, 0.28, desertGold],  // 5
+      [0.0065, 0.0085, 0.30, rodRedBand], // 4 red band
+      [0.0085, 0.011, 0.28, rodRedBand],  // 5
       [0.011, 0.014, 0.28, carbon],       // 6
       [0.014, 0.018, 0.32, gripMat],      // 7 butt/grip
     ];
@@ -1259,7 +1283,7 @@
     rest.add(uPad);
     const restDot = new THREE.Mesh(
       new THREE.SphereGeometry(0.008, 8, 8),
-      new THREE.MeshStandardMaterial({ color: 0x33ccee, emissive: 0x1188aa, emissiveIntensity: 0.55 })
+      new THREE.MeshStandardMaterial({ color: Pal.rodRed, roughness: 0.4, metalness: 0.15 })
     );
     restDot.position.set(0.12, 0.05, 0.04);
     rest.add(restDot);
@@ -1322,7 +1346,7 @@
     const c = document.createElement("canvas");
     c.width = c.height = size;
     const ctx = c.getContext("2d");
-    ctx.fillStyle = "#c8c4bc";
+    ctx.fillStyle = "#e4e0da";
     ctx.fillRect(0, 0, size, size);
     // soft veins
     for (let i = 0; i < 18; i++) {
@@ -1378,8 +1402,8 @@
     const cell = size / div;
     for (let y = 0; y < div; y++) {
       for (let x = 0; x < div; x++) {
-        const shade = 190 + ((x + y) % 2) * 12 + Math.floor(Math.random() * 6);
-        ctx.fillStyle = `rgb(${shade},${shade + 2},${shade + 6})`;
+        const shade = 214 + ((x + y) % 2) * 8 + Math.floor(Math.random() * 5);
+        ctx.fillStyle = `rgb(${shade},${shade - 1},${shade - 4})`;
         ctx.fillRect(x * cell, y * cell, cell + 0.5, cell + 0.5);
         ctx.strokeStyle = "rgba(120,124,132,0.35)";
         ctx.lineWidth = 2;
@@ -1395,10 +1419,10 @@
     const c = document.createElement("canvas");
     c.width = c.height = size;
     const ctx = c.getContext("2d");
-    ctx.fillStyle = "#9aa0a8";
+    ctx.fillStyle = "#f4f1ec";
     ctx.fillRect(0, 0, size, size);
     for (let x = 0; x < size; x += 6) {
-      ctx.fillStyle = x % 12 === 0 ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
+      ctx.fillStyle = x % 12 === 0 ? "rgba(255,255,255,0.22)" : "rgba(22,19,17,0.04)";
       ctx.fillRect(x, 0, 3, size);
     }
     for (let i = 0; i < 40; i++) {
@@ -1417,11 +1441,11 @@
     c.height = h;
     const ctx = c.getContext("2d");
     const styles = {
-      green: { bg: "#1f6b3a", accent: "#a8e6c0", title: "夜貓資訊" },
-      logo: { bg: "#f4f6f8", accent: "#c62828", title: "夜貓釣蝦" },
-      black: { bg: "#121214", accent: "#ffd54a", title: "夜貓" },
-      teal: { bg: "#0e6e6e", accent: "#ff8a40", title: "新鮮活蝦" },
-      side: { bg: "#1a1f28", accent: "#5eb8e8", title: "廣告位" },
+      green: { bg: "#1f6b3a", accent: "#d7efe0", title: "夜貓資訊" },
+      logo: { bg: "#f7f4ef", accent: Pal.hex(Pal.brush), title: "夜貓釣蝦" },
+      black: { bg: "#161311", accent: Pal.hex(Pal.brush), title: "夜貓" },
+      teal: { bg: Pal.hex(Pal.sea), accent: Pal.hex(Pal.brush), title: "新鮮活蝦" },
+      side: { bg: "#24303c", accent: Pal.hex(Pal.seaButton), title: "廣告位" },
     };
     if (creative) {
       ctx.fillStyle = creative.bg || "#222";
@@ -1553,13 +1577,17 @@
   function makeShrimpMesh(scale) {
     const g = new THREE.Group();
     const mat = new THREE.MeshStandardMaterial({
-      color: 0xb89068,
-      roughness: 0.65,
-      metalness: 0.05,
+      color: Pal.prawn,
+      roughness: 0.42,
+      metalness: 0.02,
+      transparent: true,
+      opacity: 0.86,
     });
     const matDark = new THREE.MeshStandardMaterial({
-      color: 0x8a6848,
-      roughness: 0.7,
+      color: Pal.prawnDark,
+      roughness: 0.5,
+      transparent: true,
+      opacity: 0.9,
     });
     const body = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 8), mat);
     body.scale.set(scale * 1.7, scale * 0.85, scale * 0.95);
@@ -1576,7 +1604,7 @@
     tail.rotation.z = Math.PI / 2;
     tail.position.x = -scale * 2.5;
     g.add(tail);
-    const clawMat = new THREE.MeshStandardMaterial({ color: 0xc4a070, roughness: 0.55 });
+    const clawMat = new THREE.MeshStandardMaterial({ color: Pal.claw, roughness: 0.4 });
     const claw = new THREE.Mesh(new THREE.BoxGeometry(scale * 1.0, scale * 0.22, scale * 0.22), clawMat);
     claw.position.set(scale * 1.15, scale * 0.25, scale * 0.45);
     g.add(claw);
@@ -1587,9 +1615,9 @@
     const shell = new THREE.Mesh(
       new THREE.SphereGeometry(1, 8, 6),
       new THREE.MeshStandardMaterial({
-        color: 0xd0b088,
+        color: Pal.prawnShell,
         transparent: true,
-        opacity: 0.35,
+        opacity: 0.28,
         roughness: 0.3,
       })
     );
