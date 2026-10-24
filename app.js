@@ -554,7 +554,7 @@
     lidPivot.add(logoPlate);
     lidPivot.rotation.x = -0.42;
     boxG.add(lidPivot);
-    boxG.position.set(-0.85, tableY, 2.62);
+    boxG.position.set(-0.55, tableY, 3.35);
     boxG.rotation.y = 0.22;
     boxG.scale.setScalar(1.7);
     tackle.add(boxG);
@@ -587,7 +587,7 @@
     butt.rotation.z = Math.PI / 2;
     butt.position.x = xCursor - 0.02;
     spare.add(butt);
-    spare.position.set(1.05, tableY + 0.02, 2.92);
+    spare.position.set(1.35, tableY + 0.02, 3.62);
     spare.rotation.y = -0.06;
     tackle.add(spare);
 
@@ -601,15 +601,14 @@
     if (!camera || !game.camLook) return;
     const aspect = camera.aspect > 0 ? camera.aspect : 1;
     if (aspect < 0.9) {
-      // Phone HUD: high 3/4, far enough that both side rims and a strip of
-      // floor stay inside the inset. Not the old fov-84 overhead.
-      camera.fov = 56;
-      camera.position.set(0.22, 6.05, 8.15);
-      game.camLook.set(0, 0.42, -0.45);
+      // Phone inset: high view of the light hall, all four rims and the ad row.
+      camera.fov = 58;
+      camera.position.set(0.08, 6.55, 7.85);
+      game.camLook.set(0, 0.55, -0.55);
     } else {
-      camera.fov = 42;
-      camera.position.set(0.45, 5.35, 8.7);
-      game.camLook.set(0, 0.38, -0.35);
+      camera.fov = 46;
+      camera.position.set(0.12, 5.85, 8.35);
+      game.camLook.set(0, 0.42, -0.45);
     }
     game.camHome.copy(camera.position);
     camera.lookAt(game.camLook);
@@ -624,9 +623,10 @@
     }
     const wrap = $("canvas-wrap");
     scene = new THREE.Scene();
-    // Mint / sage hall (Space 6 ref), not the cream AU splash.
-    scene.background = new THREE.Color(Pal.wall);
-    scene.fog = new THREE.Fog(Pal.wall, 34, 86);
+    // Bright warehouse (Louis ref): cream walls, not the mint hall.
+    const hallWall = 0xe7e2da;
+    scene.background = new THREE.Color(hallWall);
+    scene.fog = new THREE.Fog(hallWall, 42, 92);
 
     // Home pose is aspect-aware (tall phone vs landscape). See applyHomeCamera.
     const viewW = Math.max(1, wrap.clientWidth);
@@ -647,12 +647,12 @@
     }
     wrap.appendChild(renderer.domElement);
 
-    // Even hall light so the sage walls and teal pool stay readable.
-    const hemi = new THREE.HemisphereLight(0xf4fff8, 0x8aa898, 0.62);
+    // Bright even hall, with one key soft enough to leave a light pool shadow.
+    const hemi = new THREE.HemisphereLight(0xfffaf6, 0xd4cfc6, 0.74);
     scene.add(hemi);
-    const amb = new THREE.AmbientLight(0xf3faf6, 0.28);
+    const amb = new THREE.AmbientLight(0xfff8f2, 0.44);
     scene.add(amb);
-    const key = new THREE.DirectionalLight(0xfffaf4, 1.15);
+    const key = new THREE.DirectionalLight(0xfffaf6, 0.72);
     key.position.set(3.2, 9.2, 4.2);
     key.target.position.set(0, 0.35, 0.15);
     scene.add(key.target);
@@ -667,7 +667,7 @@
     key.shadow.bias = -0.0006;
     key.shadow.normalBias = 0.03;
     scene.add(key);
-    const fill = new THREE.DirectionalLight(0xe7f6f0, 0.32);
+    const fill = new THREE.DirectionalLight(0xf6f1ea, 0.34);
     fill.position.set(-3, 5, -2);
     scene.add(fill);
 
@@ -692,13 +692,12 @@
       const panel = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.03, 0.78), ledPanelMat);
       panel.position.set(x, y - 0.02, z);
       scene.add(panel);
-      const pl = new THREE.PointLight(0xf7fff8, 0.18, 10, 2);
+      const pl = new THREE.PointLight(0xfffaf4, 0.2, 10, 2);
       pl.position.set(x, y - 0.35, z);
       scene.add(pl);
     });
 
-    // Soft sea-blue bounce off the pool (not a teal neon wash)
-    const waterFill = new THREE.PointLight(Pal.seaBright, 0.16, 9, 2);
+    const waterFill = new THREE.PointLight(0x8ec4e8, 0.12, 9, 2);
     waterFill.position.set(0, 2.0, 0.2);
     scene.add(waterFill);
 
@@ -708,12 +707,18 @@
     // Procedural textures
     const floorTileTex = makeFloorTileTexture(256);
     floorTileTex.wrapS = floorTileTex.wrapT = THREE.RepeatWrapping;
-    floorTileTex.repeat.set(4, 4);
+    floorTileTex.repeat.set(6, 6);
+    const marbleTex = makeMarbleTexture(256);
+    marbleTex.wrapS = marbleTex.wrapT = THREE.RepeatWrapping;
+    marbleTex.repeat.set(3, 2);
+    const woodTex = makeWoodTexture(256);
+    woodTex.wrapS = woodTex.wrapT = THREE.RepeatWrapping;
+    woodTex.repeat.set(3, 1);
     const wallMetalTex = makeCorrugatedTexture(256);
     wallMetalTex.wrapS = wallMetalTex.wrapT = THREE.RepeatWrapping;
     wallMetalTex.repeat.set(8, 14);
 
-    // Floor — dark / mid grey squares so the hall has a perspective ground.
+    // Floor — light grey squares, same hall as the reference photo.
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(24, 24),
       new THREE.MeshStandardMaterial({
@@ -734,15 +739,15 @@
       color: 0xffffff,
       roughness: 0.9,
       metalness: 0.0,
-      emissive: Pal.wall,
-      emissiveIntensity: 0.28,
+      emissive: hallWall,
+      emissiveIntensity: 0.12,
     });
     const sideWallMat = new THREE.MeshStandardMaterial({
-      color: Pal.wall,
+      color: hallWall,
       roughness: 0.92,
       metalness: 0.0,
-      emissive: Pal.wall,
-      emissiveIntensity: 0.22,
+      emissive: hallWall,
+      emissiveIntensity: 0.1,
     });
     function wall(mat, w, h, d, x, y, z) {
       const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
@@ -764,7 +769,7 @@
     // Bright white ceiling panels
     const ceiling = new THREE.Mesh(
       new THREE.PlaneGeometry(18, 26),
-      new THREE.MeshStandardMaterial({ color: 0xdff3ea, roughness: 0.92, side: THREE.FrontSide })
+      new THREE.MeshStandardMaterial({ color: 0xf4f1eb, roughness: 0.92, side: THREE.FrontSide })
     );
     ceiling.rotation.x = Math.PI / 2;
     ceiling.position.set(0, hallTop, 2.2);
@@ -824,7 +829,7 @@
       new THREE.BoxGeometry(0.55, 0.28, 0.05),
       new THREE.MeshStandardMaterial({
         color: Pal.ink,
-        emissive: Pal.sea,
+        emissive: 0x1c5f96,
         emissiveIntensity: 0.12,
         roughness: 0.5,
       })
@@ -865,7 +870,8 @@
       panel.position.z = 0.02;
       g.add(frame);
       g.add(panel);
-      g.position.set(0, 1.62, -4.7);
+      // Above the sponsor row so the four ad panels stay readable.
+      g.position.set(0, 2.68, -4.82);
       scene.add(g);
     }
     addHallSign();
@@ -909,9 +915,9 @@
     const WATER_Y = 0.42;
     const innerW = 5.8;
     const innerD = 3.9;
-    const wallThick = 0.64;
-    const capT = 0.13;
-    const freeboard = 0.74;
+    const wallThick = 0.56;
+    const capT = 0.12;
+    const freeboard = 0.46;
     const deckTop = WATER_Y + freeboard + capT;
     const capBottom = deckTop - capT;
     const outerBottom = -0.5;
@@ -926,30 +932,36 @@
     const outerHalfD = halfD + wallThick;
     game.waterY = WATER_Y;
 
-    // Top slab is lighter than the vertical faces so the rim has a lit edge.
+    // Same warm stone as the reference deck. Top is lighter than the vertical faces.
+    const seaBlue = 0x3a92c8;
+    const seaDeepBlue = 0x1c5f96;
+    const seaSurfaceBlue = 0x5aade0;
     const capMat = new THREE.MeshStandardMaterial({
-      color: 0xd4d8de,
-      roughness: 0.46,
-      metalness: 0.05,
-    });
-    const sideMat = new THREE.MeshStandardMaterial({
-      color: 0x646b73,
-      roughness: 0.86,
-      metalness: 0.06,
-    });
-    const innerMat = new THREE.MeshStandardMaterial({
-      color: 0x90989f,
-      roughness: 0.74,
+      map: marbleTex,
+      color: 0xfff7f0,
+      roughness: 0.5,
       metalness: 0.04,
     });
+    const sideMat = new THREE.MeshStandardMaterial({
+      map: marbleTex,
+      color: 0xb5a898,
+      roughness: 0.78,
+      metalness: 0.04,
+    });
+    const innerMat = new THREE.MeshStandardMaterial({
+      map: marbleTex,
+      color: 0xd2c6b6,
+      roughness: 0.68,
+      metalness: 0.03,
+    });
     const linerMat = new THREE.MeshStandardMaterial({
-      color: Pal.seaDeep,
+      color: seaDeepBlue,
       roughness: 0.45,
       metalness: 0.05,
     });
     const lipShadowMat = new THREE.MeshStandardMaterial({
-      color: 0x3a4048,
-      roughness: 0.94,
+      color: 0x8d8174,
+      roughness: 0.9,
       metalness: 0.02,
     });
 
@@ -989,14 +1001,14 @@
     box(innerMat, fbT, fbH, innerD - 0.16, -(halfW - 0.035), fbCY, 0, true);
     box(innerMat, fbT, fbH, innerD - 0.16, halfW - 0.035, fbCY, 0, true);
 
-    const floorTile = makeTileTexture(128, Pal.hex(Pal.seaBright), Pal.hex(Pal.sea), 8);
+    const floorTile = makeTileTexture(128, "#5aade0", "#3a92c8", 8);
     floorTile.wrapS = floorTile.wrapT = THREE.RepeatWrapping;
     floorTile.repeat.set(5, 3);
     const tankFloor = new THREE.Mesh(
       new THREE.PlaneGeometry(innerW - 0.12, innerD - 0.12),
       new THREE.MeshStandardMaterial({
         map: floorTile,
-        color: Pal.sea,
+        color: seaBlue,
         roughness: 0.8,
         metalness: 0.02,
       })
@@ -1006,18 +1018,18 @@
     tankFloor.receiveShadow = true;
     poolGroup.add(tankFloor);
 
-    // WATER VOLUME — opaque teal / turquoise (Space 6), darker than the AU sea-blue.
+    // WATER VOLUME — sea blue, surface locked to WATER_Y.
     const waterDepth = Math.max(0.35, WATER_Y - (bottomY + 0.05));
     const waterVolMat = new THREE.MeshStandardMaterial({
-      color: Pal.sea,
+      color: seaBlue,
       roughness: 0.28,
       metalness: 0.02,
       transparent: true,
-      opacity: 0.9,
+      opacity: 0.88,
       side: THREE.DoubleSide,
       depthWrite: false,
-      emissive: Pal.seaDeep,
-      emissiveIntensity: 0.08,
+      emissive: seaDeepBlue,
+      emissiveIntensity: 0.05,
     });
     const waterVolume = new THREE.Mesh(
       new THREE.BoxGeometry(innerW - 0.16, waterDepth, innerD - 0.16),
@@ -1027,18 +1039,17 @@
     waterVolume.renderOrder = 1;
     poolGroup.add(waterVolume);
 
-    // WATER SURFACE — teal film, not a neon glow.
     const waterGeo = new THREE.PlaneGeometry(innerW - 0.2, innerD - 0.2, 48, 32);
     const surfaceMat = new THREE.MeshStandardMaterial({
-      color: Pal.seaSurface,
-      roughness: 0.12,
-      metalness: 0.08,
+      color: seaSurfaceBlue,
+      roughness: 0.14,
+      metalness: 0.06,
       transparent: true,
-      opacity: 0.82,
+      opacity: 0.8,
       side: THREE.DoubleSide,
       depthWrite: false,
-      emissive: Pal.sea,
-      emissiveIntensity: 0.05,
+      emissive: seaBlue,
+      emissiveIntensity: 0.04,
     });
     waterMesh = new THREE.Mesh(waterGeo, surfaceMat);
     waterMesh.rotation.x = -Math.PI / 2;
@@ -1048,7 +1059,7 @@
 
     // Dark contact where the water meets the wall — not a bright surface rail.
     const edgeMat = new THREE.MeshStandardMaterial({
-      color: 0x06383c,
+      color: 0x1a5278,
       roughness: 0.5,
       metalness: 0.02,
       transparent: true,
@@ -1090,11 +1101,26 @@
     box(capMat, sideCapW, capT, sideCapD, (sideInnerX + sideOuterX) / 2, capY, 0, true);
     // Near deck continues the coping toward the angler (tackle sits on this).
     const deckFarZ = halfD - overhang;
-    const deckNearZ = 3.28;
+    const deckNearZ = 4.05;
     box(capMat, capOuterX * 2, capT, deckNearZ - deckFarZ, 0, capY, (deckFarZ + deckNearZ) / 2, true);
     const skirtTop = capBottom + 0.01;
     const skirtH = skirtTop - outerBottom;
     box(sideMat, shellW - 0.28, skirtH, deckNearZ - outerHalfD - 0.04, 0, (outerBottom + skirtTop) / 2, (outerHalfD + 0.03 + deckNearZ) / 2, true);
+
+    // Warm wood line on the stone, framing the opening the way the reference does.
+    const woodMat = new THREE.MeshStandardMaterial({
+      map: woodTex,
+      color: 0xc4a06a,
+      roughness: 0.55,
+      metalness: 0.02,
+    });
+    const trimY = deckTop + 0.018;
+    const trimH = 0.032;
+    const trimW = 0.08;
+    box(woodMat, innerW - 0.15, trimH, trimW, 0, trimY, farInnerZ - 0.05, false);
+    box(woodMat, innerW - 0.15, trimH, trimW, 0, trimY, deckFarZ + 0.05, false);
+    box(woodMat, trimW, trimH, sideCapD - 0.12, -(sideInnerX + 0.05), trimY, 0, false);
+    box(woodMat, trimW, trimH, sideCapD - 0.12, sideInnerX + 0.05, trimY, 0, false);
 
     // Shadow lip under the inward overhang (top vs underside).
     const lipY = capBottom - 0.018;
@@ -1348,7 +1374,7 @@
     );
     restDot.position.set(0.12, 0.05, 0.04);
     rest.add(restDot);
-    rest.position.set(1.35, deckTop + 0.02, 2.7);
+    rest.position.set(0.85, deckTop + 0.02, 3.22);
     rest.scale.setScalar(1.45);
     rest.rotation.y = 0.08;
     scene.add(rest);
@@ -1407,11 +1433,11 @@
     const c = document.createElement("canvas");
     c.width = c.height = size;
     const ctx = c.getContext("2d");
-    ctx.fillStyle = "#cfd3d8";
+    ctx.fillStyle = "#e6ddd2";
     ctx.fillRect(0, 0, size, size);
-    // soft veins
+    // Warm stone veins, matching the light coping in the reference.
     for (let i = 0; i < 18; i++) {
-      ctx.strokeStyle = `rgba(${90 + Math.random() * 40},${90 + Math.random() * 30},${85 + Math.random() * 30},${0.12 + Math.random() * 0.15})`;
+      ctx.strokeStyle = `rgba(${110 + Math.random() * 30},${102 + Math.random() * 24},${92 + Math.random() * 20},${0.16 + Math.random() * 0.16})`;
       ctx.lineWidth = 2 + Math.random() * 4;
       ctx.beginPath();
       let x = Math.random() * size;
@@ -1462,12 +1488,12 @@
     const div = 4;
     const cell = size / div;
     const grout = Math.max(4, Math.round(size * 0.018));
-    ctx.fillStyle = "#23272b";
+    ctx.fillStyle = "#b7bcc2";
     ctx.fillRect(0, 0, size, size);
     for (let y = 0; y < div; y++) {
       for (let x = 0; x < div; x++) {
         const dark = (x + y) % 2 === 0;
-        const base = dark ? 58 : 132;
+        const base = dark ? 176 : 206;
         const shade = base + Math.floor(Math.random() * 10) - 4;
         ctx.fillStyle = `rgb(${shade},${shade + 1},${shade + 4})`;
         const px = x * cell + grout;
@@ -1475,7 +1501,7 @@
         const tw = cell - grout * 2;
         const th = cell - grout * 2;
         ctx.fillRect(px, py, tw, th);
-        ctx.fillStyle = dark ? "rgba(0,0,0,0.18)" : "rgba(255,255,255,0.07)";
+        ctx.fillStyle = dark ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.14)";
         ctx.fillRect(px, py, tw, Math.max(2, grout));
       }
     }
@@ -1488,7 +1514,7 @@
     const c = document.createElement("canvas");
     c.width = c.height = size;
     const ctx = c.getContext("2d");
-    ctx.fillStyle = Pal.hex(Pal.wall);
+    ctx.fillStyle = "#e7e2da";
     ctx.fillRect(0, 0, size, size);
     for (let x = 0; x < size; x += 6) {
       ctx.fillStyle = x % 12 === 0 ? "rgba(255,255,255,0.22)" : "rgba(22,19,17,0.04)";
