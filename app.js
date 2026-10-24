@@ -499,7 +499,7 @@
   let floatBob = { phase: 0, amp: 0.015, sink: 0 };
   // game.waterY set in initScene
 
-  // Foreground tackle on the near counter (readable after the wider camera).
+  // Near counter: a tackle box (blank logo plate) and one 蝦竿. Nothing else.
   function addSeatTackle(tableY) {
     const tackle = new THREE.Group();
     tackle.name = "seatTackle";
@@ -510,150 +510,83 @@
         metalness: metal == null ? 0.06 : metal,
       });
 
-    const towel = new THREE.Group();
-    const foldA = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.04, 0.34), plastic(0xcfc0ae, 0.92, 0));
-    foldA.position.y = 0.02;
-    towel.add(foldA);
-    const foldB = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.032, 0.3), plastic(0xb7a28e, 0.94, 0));
-    foldB.position.set(0.015, 0.052, -0.008);
-    towel.add(foldB);
-    const hem = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.006, 0.055), plastic(0x8a3034, 0.8, 0.02));
-    hem.position.set(0.015, 0.07, 0.05);
-    towel.add(hem);
-    towel.position.set(-1.85, tableY, 3.42);
-    towel.rotation.y = -0.22;
-    towel.scale.setScalar(1.85);
-    tackle.add(towel);
-
-    const bucket = new THREE.Group();
-    const bucketBody = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.155, 0.132, 0.3, 20),
-      plastic(0x2c4a38, 0.52, 0.14)
-    );
-    bucketBody.position.y = 0.15;
-    bucketBody.castShadow = true;
-    bucket.add(bucketBody);
-    const bucketRim = new THREE.Mesh(
-      new THREE.TorusGeometry(0.155, 0.012, 8, 24),
-      plastic(0x3d5c49, 0.4, 0.22)
-    );
-    bucketRim.rotation.x = Math.PI / 2;
-    bucketRim.position.y = 0.29;
-    bucket.add(bucketRim);
-    const handle = new THREE.Mesh(
-      new THREE.TorusGeometry(0.11, 0.007, 6, 16, Math.PI),
-      plastic(0xd5d8dc, 0.28, 0.78)
-    );
-    handle.rotation.y = Math.PI / 2;
-    handle.position.y = 0.36;
-    bucket.add(handle);
-    bucket.position.set(-2.55, tableY, 3.78);
-    bucket.rotation.y = 0.35;
-    bucket.scale.setScalar(1.9);
-    tackle.add(bucket);
-
     const boxG = new THREE.Group();
-    const base = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.13, 0.36), plastic(0x6d7a52, 0.46, 0.08));
-    base.position.y = 0.065;
+    const base = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.16, 0.46), plastic(0x5e6a49, 0.48, 0.08));
+    base.position.y = 0.08;
     base.castShadow = true;
     boxG.add(base);
-    const tray = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.02, 0.26), plastic(0x24261f, 0.72, 0.04));
-    tray.position.y = 0.135;
-    boxG.add(tray);
+    const lip = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.02, 0.48), plastic(0x3d4434, 0.42, 0.12));
+    lip.position.y = 0.16;
+    boxG.add(lip);
     const lidPivot = new THREE.Group();
-    lidPivot.position.set(0, 0.14, -0.17);
-    const lid = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.028, 0.36), plastic(0x90986e, 0.4, 0.06));
-    lid.position.z = 0.18;
+    lidPivot.position.set(0, 0.17, -0.22);
+    const lid = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.03, 0.46), plastic(0x7d8a62, 0.42, 0.06));
+    lid.position.z = 0.23;
+    lid.castShadow = true;
     lidPivot.add(lid);
-    const label = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.006, 0.14), plastic(0xf3f0e8, 0.62, 0));
-    label.position.set(0.06, 0.02, 0.18);
-    lidPivot.add(label);
-    const labelBand = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.006, 0.032), plastic(0xb4232c, 0.5, 0.02));
-    labelBand.position.set(0.06, 0.024, 0.1);
-    lidPivot.add(labelBand);
-    lidPivot.rotation.x = -0.62;
+    // Empty light panel — room for a future sponsor logo, no marks.
+    const logoPlate = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.008, 0.26), plastic(0xf6f3ec, 0.55, 0.02));
+    logoPlate.position.set(0, 0.022, 0.22);
+    logoPlate.name = "tackleLogoPlate";
+    lidPivot.add(logoPlate);
+    lidPivot.rotation.x = -0.42;
     boxG.add(lidPivot);
-    boxG.position.set(-0.85, tableY, 3.58);
-    boxG.rotation.y = 0.15;
-    boxG.scale.setScalar(1.75);
+    boxG.position.set(-0.72, tableY, 3.48);
+    boxG.rotation.y = 0.22;
+    boxG.scale.setScalar(1.7);
     tackle.add(boxG);
 
-    const pad = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.028, 0.2), plastic(0x3e4348, 0.78, 0.06));
-    pad.position.set(0.15, tableY + 0.014, 3.82);
-    pad.scale.setScalar(1.7);
-    pad.rotation.y = -0.12;
-    tackle.add(pad);
-
-    function lyingFloat(bodyColor, bandColor, length, radius, x, z, rotY) {
-      const g = new THREE.Group();
-      const body = new THREE.Mesh(
-        new THREE.CapsuleGeometry(radius, Math.max(0.04, length - radius * 2), 4, 10),
-        plastic(bodyColor, 0.32, 0.18)
-      );
-      body.rotation.z = Math.PI / 2;
-      g.add(body);
-      if (bandColor != null) {
-        const band = new THREE.Mesh(
-          new THREE.CylinderGeometry(radius * 1.08, radius * 1.08, 0.028, 10),
-          plastic(bandColor, 0.38, 0.08)
-        );
-        band.rotation.z = Math.PI / 2;
-        g.add(band);
-      }
-      const nose = new THREE.Mesh(
-        new THREE.SphereGeometry(radius * 0.72, 8, 8),
-        plastic(0xf6f3ec, 0.3, 0.04)
-      );
-      nose.position.x = length * 0.46;
-      g.add(nose);
-      g.position.set(x, tableY + 0.03 + radius, z);
-      g.rotation.y = rotY;
-      return g;
-    }
-    const floatA = lyingFloat(0xd24a3a, 0xf4f1ea, 0.36, 0.03, 0.02, 3.86, 0.4);
-    const floatB = lyingFloat(0xe2b83a, 0x1c1e22, 0.44, 0.02, 0.28, 3.76, -0.25);
-    floatA.scale.setScalar(1.65);
-    floatB.scale.setScalar(1.65);
-    tackle.add(floatA);
-    tackle.add(floatB);
-
+    // Telescopic shrimp rod lying on the counter (not the angler's held rod).
     const spare = new THREE.Group();
-    const blank = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.011, 0.016, 1.2, 10),
-      plastic(0x1a1c20, 0.32, 0.5)
+    const segments = [
+      [0.006, 0.008, 0.34, 0x1c1e22],
+      [0.008, 0.01, 0.32, 0x1c1e22],
+      [0.01, 0.012, 0.3, 0xc9b07a],
+      [0.012, 0.015, 0.32, 0x1c1e22],
+      [0.015, 0.018, 0.36, 0x2a241c],
+    ];
+    let xCursor = 0.82;
+    segments.forEach(([rA, rB, len, color]) => {
+      const seg = new THREE.Mesh(
+        new THREE.CylinderGeometry(rA, rB, len, 10),
+        plastic(color, color === 0xc9b07a ? 0.36 : 0.34, color === 0xc9b07a ? 0.42 : 0.48)
+      );
+      seg.rotation.z = Math.PI / 2;
+      seg.position.x = xCursor - len / 2;
+      seg.castShadow = true;
+      spare.add(seg);
+      xCursor -= len;
+    });
+    const butt = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.02, 0.018, 0.05, 10),
+      plastic(0xb0b6be, 0.28, 0.7)
     );
-    blank.rotation.z = Math.PI / 2;
-    spare.add(blank);
-    const gold = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.018, 0.018, 0.07, 10),
-      plastic(0xc9b07a, 0.38, 0.4)
-    );
-    gold.rotation.z = Math.PI / 2;
-    gold.position.x = 0.22;
-    spare.add(gold);
-    spare.position.set(1.15, tableY + 0.02, 3.98);
-    spare.rotation.y = 0.12;
-    spare.scale.setScalar(1.35);
+    butt.rotation.z = Math.PI / 2;
+    butt.position.x = xCursor - 0.02;
+    spare.add(butt);
+    spare.position.set(1.15, tableY + 0.02, 3.82);
+    spare.rotation.y = -0.06;
     tackle.add(spare);
 
     scene.add(tackle);
   }
 
-  // Home framing. Tall phones need a higher, wider view so the pool
-  // rectangle and the far ad wall fit; landscape can sit closer.
+  // Home framing. Portrait stays high enough that a narrow phone still
+  // holds every pool rim corner and the full far ad row, but tighter than
+  // the fov-90 overview. Landscape can sit lower and closer.
   function applyHomeCamera() {
     if (!camera || !game.camLook) return;
     const aspect = camera.aspect > 0 ? camera.aspect : 1;
     if (aspect < 0.9) {
-      // ~9:16 and ~20:9 portrait. fov 90 keeps the ad row inside the screen edges.
-      camera.fov = 90;
-      camera.position.set(0.1, 11.0, 6.8);
-      game.camLook.set(0, 0.25, 0.4);
+      // ~9:16 and ~20:9. fov 84, pitched so the near rim sits lower in frame.
+      camera.fov = 84;
+      camera.position.set(0.1, 10.6, 6.65);
+      game.camLook.set(0, 2.05, -0.82);
     } else {
-      // Landscape phone / desktop.
-      camera.fov = 50;
-      camera.position.set(0.15, 6.4, 8.95);
-      game.camLook.set(0, 0.6, -1.25);
+      // Landscape phone / desktop — modest pull-in from the wide overview.
+      camera.fov = 48;
+      camera.position.set(0.15, 5.35, 8.25);
+      game.camLook.set(0, 0.92, -1.22);
     }
     game.camHome.copy(camera.position);
     camera.lookAt(game.camLook);
@@ -1133,37 +1066,6 @@
     makeBubbleCluster(-0.6, -0.2, 40);
     makeBubbleCluster(1.0, -0.7, 36);
 
-    // Small green scale on pool edge (ref photo)
-    const scaleBody = new THREE.Mesh(
-      new THREE.BoxGeometry(0.22, 0.12, 0.16),
-      new THREE.MeshStandardMaterial({ color: 0x2e8b45, roughness: 0.5 })
-    );
-    scaleBody.position.set(-1.6, lipY + 0.12, 2.85);
-    scaleBody.castShadow = true;
-    scene.add(scaleBody);
-    const scaleDial = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.05, 0.05, 0.02, 16),
-      new THREE.MeshStandardMaterial({ color: 0xf0f0f0, roughness: 0.4 })
-    );
-    scaleDial.rotation.x = Math.PI / 2;
-    scaleDial.position.set(-1.6, lipY + 0.2, 2.85);
-    scene.add(scaleDial);
-
-    // Small side table / bait tray
-    const table = new THREE.Mesh(
-      new THREE.BoxGeometry(0.55, 0.04, 0.35),
-      new THREE.MeshStandardMaterial({ color: 0x2a2a2e, roughness: 0.5 })
-    );
-    table.position.set(2.0, lipY + 0.08, 2.85);
-    table.castShadow = true;
-    scene.add(table);
-    const tray = new THREE.Mesh(
-      new THREE.BoxGeometry(0.35, 0.04, 0.22),
-      new THREE.MeshStandardMaterial({ color: 0xd8c878, roughness: 0.45 })
-    );
-    tray.position.set(2.0, lipY + 0.12, 2.85);
-    scene.add(tray);
-
     // ——— Taiwan 阿波 / 長標 / 短標 (神綱-style silhouette; no brand logos) ———
     function buildFloatMesh(style) {
       const g = new THREE.Group();
@@ -1364,99 +1266,6 @@
     rest.scale.setScalar(1.45);
     rest.rotation.y = 0.08;
     scene.add(rest);
-
-    // ——— Side table props: 水深棒 + scissors + macaron float case ———
-    const depthStick = new THREE.Group();
-    const dsShaft = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.0028, 0.0028, 0.62, 8),
-      new THREE.MeshStandardMaterial({ color: 0xd0d4d8, metalness: 0.85, roughness: 0.22 })
-    );
-    dsShaft.rotation.z = Math.PI / 2.35;
-    depthStick.add(dsShaft);
-    // Rainbow / oil-slick teardrop weight
-    const dsWeight = new THREE.Mesh(
-      new THREE.SphereGeometry(0.02, 12, 12),
-      new THREE.MeshStandardMaterial({
-        color: 0x6a3aaa,
-        metalness: 0.85,
-        roughness: 0.18,
-        emissive: 0x2244aa,
-        emissiveIntensity: 0.22,
-      })
-    );
-    dsWeight.scale.set(0.85, 1.55, 0.85);
-    dsWeight.position.set(0.28, -0.09, 0);
-    depthStick.add(dsWeight);
-    const coil = new THREE.Mesh(
-      new THREE.TorusGeometry(0.006, 0.002, 6, 10),
-      new THREE.MeshStandardMaterial({ color: 0xc8ccd0, metalness: 0.8, roughness: 0.3 })
-    );
-    coil.position.set(0.2, -0.05, 0);
-    coil.rotation.y = Math.PI / 2;
-    depthStick.add(coil);
-    depthStick.position.set(2.15, lipY + 0.2, 3.48);
-    depthStick.scale.setScalar(1.7);
-    scene.add(depthStick);
-
-    // Simple scissors
-    const scissorMat = new THREE.MeshStandardMaterial({ color: 0xb8bcc2, metalness: 0.75, roughness: 0.3 });
-    const sc = new THREE.Group();
-    const blade1 = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.008, 0.018), scissorMat);
-    blade1.rotation.z = 0.18;
-    sc.add(blade1);
-    const blade2 = blade1.clone();
-    blade2.rotation.z = -0.18;
-    sc.add(blade2);
-    const handle1 = new THREE.Mesh(
-      new THREE.TorusGeometry(0.022, 0.005, 6, 12),
-      new THREE.MeshStandardMaterial({ color: 0xd62828, roughness: 0.45 })
-    );
-    handle1.position.set(-0.08, 0.02, 0);
-    handle1.rotation.y = Math.PI / 2;
-    sc.add(handle1);
-    const handle2 = handle1.clone();
-    handle2.position.y = -0.02;
-    sc.add(handle2);
-    sc.position.set(2.35, lipY + 0.1, 3.28);
-    sc.scale.setScalar(1.8);
-    sc.rotation.y = 0.4;
-    scene.add(sc);
-
-    // Macaron oval float case (clear lid vibe + blue body; no logos)
-    const macaron = new THREE.Group();
-    const macBody = new THREE.Mesh(
-      new THREE.SphereGeometry(0.07, 16, 12),
-      new THREE.MeshStandardMaterial({ color: 0x3a9ad8, roughness: 0.35, metalness: 0.12 })
-    );
-    macBody.scale.set(1.35, 0.45, 0.75);
-    macaron.add(macBody);
-    const macLid = new THREE.Mesh(
-      new THREE.SphereGeometry(0.068, 16, 12),
-      new THREE.MeshStandardMaterial({
-        color: 0xd8eef8,
-        roughness: 0.2,
-        metalness: 0.05,
-        transparent: true,
-        opacity: 0.55,
-      })
-    );
-    macLid.scale.set(1.35, 0.35, 0.75);
-    macLid.position.y = 0.025;
-    macaron.add(macLid);
-    macaron.scale.setScalar(2.15);
-    macaron.position.set(2.05, lipY + 0.14, 3.78);
-    scene.add(macaron);
-    // Second empty macaron (kit vibe)
-    const mac2 = macaron.clone();
-    mac2.traverse((o) => {
-      if (o.material && o.material.color && !o.material.transparent) {
-        o.material = o.material.clone();
-        o.material.color.setHex(0x3ab87a);
-      }
-    });
-    mac2.position.set(2.48, lipY + 0.14, 3.52);
-    mac2.rotation.y = 0.4;
-    scene.add(mac2);
 
     addSeatTackle(lipY + 0.06);
 
