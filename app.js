@@ -554,7 +554,7 @@
     lidPivot.add(logoPlate);
     lidPivot.rotation.x = -0.42;
     boxG.add(lidPivot);
-    boxG.position.set(-0.72, tableY, 3.48);
+    boxG.position.set(-0.85, tableY, 2.62);
     boxG.rotation.y = 0.22;
     boxG.scale.setScalar(1.7);
     tackle.add(boxG);
@@ -587,7 +587,7 @@
     butt.rotation.z = Math.PI / 2;
     butt.position.x = xCursor - 0.02;
     spare.add(butt);
-    spare.position.set(1.15, tableY + 0.02, 3.82);
+    spare.position.set(1.05, tableY + 0.02, 2.92);
     spare.rotation.y = -0.06;
     tackle.add(spare);
 
@@ -601,15 +601,15 @@
     if (!camera || !game.camLook) return;
     const aspect = camera.aspect > 0 ? camera.aspect : 1;
     if (aspect < 0.9) {
-      // ~9:16 and ~20:9. fov 84, pitched so the near rim sits lower in frame.
-      camera.fov = 84;
-      camera.position.set(0.1, 10.6, 6.65);
-      game.camLook.set(0, 2.05, -0.82);
+      // Phone HUD: high 3/4, far enough that both side rims and a strip of
+      // floor stay inside the inset. Not the old fov-84 overhead.
+      camera.fov = 56;
+      camera.position.set(0.22, 6.05, 8.15);
+      game.camLook.set(0, 0.42, -0.45);
     } else {
-      // Landscape phone / desktop — modest pull-in from the wide overview.
-      camera.fov = 48;
-      camera.position.set(0.15, 5.35, 8.25);
-      game.camLook.set(0, 0.92, -1.22);
+      camera.fov = 42;
+      camera.position.set(0.45, 5.35, 8.7);
+      game.camLook.set(0, 0.38, -0.35);
     }
     game.camHome.copy(camera.position);
     camera.lookAt(game.camLook);
@@ -648,21 +648,24 @@
     wrap.appendChild(renderer.domElement);
 
     // Even hall light so the sage walls and teal pool stay readable.
-    const hemi = new THREE.HemisphereLight(0xf4fff8, Pal.wallDeep, 0.85);
+    const hemi = new THREE.HemisphereLight(0xf4fff8, 0x8aa898, 0.62);
     scene.add(hemi);
-    const amb = new THREE.AmbientLight(0xf3faf6, 0.5);
+    const amb = new THREE.AmbientLight(0xf3faf6, 0.28);
     scene.add(amb);
-    const key = new THREE.DirectionalLight(0xffffff, 0.72);
-    key.position.set(2.5, 8, 3);
+    const key = new THREE.DirectionalLight(0xfffaf4, 1.15);
+    key.position.set(3.2, 9.2, 4.2);
+    key.target.position.set(0, 0.35, 0.15);
+    scene.add(key.target);
     key.castShadow = true;
     key.shadow.mapSize.set(1024, 1024);
     key.shadow.camera.near = 1;
     key.shadow.camera.far = 22;
-    key.shadow.camera.left = -7;
-    key.shadow.camera.right = 7;
-    key.shadow.camera.top = 7;
-    key.shadow.camera.bottom = -7;
-    key.shadow.bias = -0.0008;
+    key.shadow.camera.left = -8;
+    key.shadow.camera.right = 8;
+    key.shadow.camera.top = 8;
+    key.shadow.camera.bottom = -8;
+    key.shadow.bias = -0.0006;
+    key.shadow.normalBias = 0.03;
     scene.add(key);
     const fill = new THREE.DirectionalLight(0xe7f6f0, 0.32);
     fill.position.set(-3, 5, -2);
@@ -689,7 +692,7 @@
       const panel = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.03, 0.78), ledPanelMat);
       panel.position.set(x, y - 0.02, z);
       scene.add(panel);
-      const pl = new THREE.PointLight(0xf7fff8, 0.34, 10, 2);
+      const pl = new THREE.PointLight(0xf7fff8, 0.18, 10, 2);
       pl.position.set(x, y - 0.35, z);
       scene.add(pl);
     });
@@ -705,23 +708,17 @@
     // Procedural textures
     const floorTileTex = makeFloorTileTexture(256);
     floorTileTex.wrapS = floorTileTex.wrapT = THREE.RepeatWrapping;
-    floorTileTex.repeat.set(10, 10);
-    const marbleTex = makeMarbleTexture(256);
-    marbleTex.wrapS = marbleTex.wrapT = THREE.RepeatWrapping;
-    marbleTex.repeat.set(4, 1);
-    const woodTex = makeWoodTexture(256);
-    woodTex.wrapS = woodTex.wrapT = THREE.RepeatWrapping;
-    woodTex.repeat.set(3, 1);
+    floorTileTex.repeat.set(4, 4);
     const wallMetalTex = makeCorrugatedTexture(256);
     wallMetalTex.wrapS = wallMetalTex.wrapT = THREE.RepeatWrapping;
     wallMetalTex.repeat.set(8, 14);
 
-    // Floor — light grey tiles (ref photo)
+    // Floor — dark / mid grey squares so the hall has a perspective ground.
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(24, 24),
       new THREE.MeshStandardMaterial({
         map: floorTileTex,
-        color: 0xd5d8dc,
+        color: 0xffffff,
         roughness: 0.88,
         metalness: 0.02,
       })
@@ -905,26 +902,55 @@
     wallFan(-6.0, 2.7, 0.5, Math.PI / 2);
     wallFan(6.0, 2.7, 0.5, -Math.PI / 2);
 
-    // ——— Main prawning tank (hollow; keep 海藍色 water) ———
-    // BUGFIX: never put a solid Box lid over the pool (that read as「冇水」).
-    // Water tint: 海藍色 sea/ocean blue (Louis) — not green-grey like photo.
+    // ——— Main prawning tank ———
+    // Water surface stays at WATER_Y (float / bite anchor). The coping sits
+    // well above it so freeboard, inner wall, and rim thickness read as a tank.
+    // Never put a solid lid over the water.
     const WATER_Y = 0.42;
-    const tankW = 5.8;
-    const tankD = 3.9;
-    const wallT = 0.1;
-    const wallH = 0.95;
+    const innerW = 5.8;
+    const innerD = 3.9;
+    const wallThick = 0.64;
+    const capT = 0.13;
+    const freeboard = 0.74;
+    const deckTop = WATER_Y + freeboard + capT;
+    const capBottom = deckTop - capT;
+    const outerBottom = -0.5;
+    const outerTop = capBottom + 0.012;
+    const outerH = outerTop - outerBottom;
+    const outerCY = (outerBottom + outerTop) / 2;
     const bottomY = -0.4;
+    const overhang = 0.18;
+    const halfW = innerW / 2;
+    const halfD = innerD / 2;
+    const outerHalfW = halfW + wallThick;
+    const outerHalfD = halfD + wallThick;
     game.waterY = WATER_Y;
 
-    const tankOuter = new THREE.MeshStandardMaterial({
-      color: 0x6a7078,
-      roughness: 0.55,
-      metalness: 0.2,
+    // Top slab is lighter than the vertical faces so the rim has a lit edge.
+    const capMat = new THREE.MeshStandardMaterial({
+      color: 0xd4d8de,
+      roughness: 0.46,
+      metalness: 0.05,
+    });
+    const sideMat = new THREE.MeshStandardMaterial({
+      color: 0x646b73,
+      roughness: 0.86,
+      metalness: 0.06,
+    });
+    const innerMat = new THREE.MeshStandardMaterial({
+      color: 0x90989f,
+      roughness: 0.74,
+      metalness: 0.04,
     });
     const linerMat = new THREE.MeshStandardMaterial({
       color: Pal.seaDeep,
-      roughness: 0.4,
+      roughness: 0.45,
       metalness: 0.05,
+    });
+    const lipShadowMat = new THREE.MeshStandardMaterial({
+      color: 0x3a4048,
+      roughness: 0.94,
+      metalness: 0.02,
     });
 
     function box(mat, w, h, d, x, y, z, cast) {
@@ -936,26 +962,38 @@
       return m;
     }
 
-    // Outer shell height kept below marble underside so top face never reads as a grey rail.
-    const oH = 0.96;
-    const oY = -0.06;
-    box(tankOuter, 6.55, oH, 0.18, 0, oY, -2.3, true);
-    box(tankOuter, 6.55, oH, 0.18, 0, oY, 2.3, true);
-    box(tankOuter, 0.18, oH, 4.7, -3.27, oY, 0, true);
-    box(tankOuter, 0.18, oH, 4.7, 3.27, oY, 0, true);
-    box(tankOuter, 6.55, 0.14, 4.7, 0, bottomY - 0.1, 0, false);
+    const shellW = innerW + wallThick * 2;
+    // Far / near walls span the full width (they own the corners).
+    box(sideMat, shellW, outerH, wallThick, 0, outerCY, -(halfD + wallThick / 2), true);
+    box(sideMat, shellW, outerH, wallThick, 0, outerCY, halfD + wallThick / 2, true);
+    // Side walls stop at the inner span so they don't z-fight the corners.
+    box(sideMat, wallThick, outerH, innerD, -(halfW + wallThick / 2), outerCY, 0, true);
+    box(sideMat, wallThick, outerH, innerD, halfW + wallThick / 2, outerCY, 0, true);
+    box(sideMat, innerW, 0.12, innerD, 0, bottomY - 0.06, 0, false);
 
-    const iY = bottomY + wallH / 2;
-    box(linerMat, tankW + wallT * 2, wallH, wallT, 0, iY, -tankD / 2 - wallT / 2, false);
-    box(linerMat, tankW + wallT * 2, wallH, wallT, 0, iY, tankD / 2 + wallT / 2, false);
-    box(linerMat, wallT, wallH, tankD, -tankW / 2 - wallT / 2, iY, 0, false);
-    box(linerMat, wallT, wallH, tankD, tankW / 2 + wallT / 2, iY, 0, false);
+    // Underwater liner stops at the waterline. Above that, a mid-grey freeboard.
+    const linTop = WATER_Y - 0.012;
+    const linH = linTop - (bottomY + 0.02);
+    const linCY = (linTop + bottomY + 0.02) / 2;
+    const linT = 0.055;
+    box(linerMat, innerW - 0.06, linH, linT, 0, linCY, -(halfD - 0.04), false);
+    box(linerMat, innerW - 0.06, linH, linT, 0, linCY, halfD - 0.04, false);
+    box(linerMat, linT, linH, innerD - 0.18, -(halfW - 0.04), linCY, 0, false);
+    box(linerMat, linT, linH, innerD - 0.18, halfW - 0.04, linCY, 0, false);
+
+    const fbH = capBottom - WATER_Y - 0.015;
+    const fbCY = WATER_Y + fbH / 2;
+    const fbT = 0.05;
+    box(innerMat, innerW - 0.1, fbH, fbT, 0, fbCY, -(halfD - 0.035), true);
+    box(innerMat, innerW - 0.1, fbH, fbT, 0, fbCY, halfD - 0.035, true);
+    box(innerMat, fbT, fbH, innerD - 0.16, -(halfW - 0.035), fbCY, 0, true);
+    box(innerMat, fbT, fbH, innerD - 0.16, halfW - 0.035, fbCY, 0, true);
 
     const floorTile = makeTileTexture(128, Pal.hex(Pal.seaBright), Pal.hex(Pal.sea), 8);
     floorTile.wrapS = floorTile.wrapT = THREE.RepeatWrapping;
     floorTile.repeat.set(5, 3);
     const tankFloor = new THREE.Mesh(
-      new THREE.PlaneGeometry(tankW - 0.02, tankD - 0.02),
+      new THREE.PlaneGeometry(innerW - 0.12, innerD - 0.12),
       new THREE.MeshStandardMaterial({
         map: floorTile,
         color: Pal.sea,
@@ -982,7 +1020,7 @@
       emissiveIntensity: 0.08,
     });
     const waterVolume = new THREE.Mesh(
-      new THREE.BoxGeometry(tankW - 0.08, waterDepth, tankD - 0.08),
+      new THREE.BoxGeometry(innerW - 0.16, waterDepth, innerD - 0.16),
       waterVolMat
     );
     waterVolume.position.y = bottomY + 0.05 + waterDepth / 2;
@@ -990,7 +1028,7 @@
     poolGroup.add(waterVolume);
 
     // WATER SURFACE — teal film, not a neon glow.
-    const waterGeo = new THREE.PlaneGeometry(tankW - 0.1, tankD - 0.1, 48, 32);
+    const waterGeo = new THREE.PlaneGeometry(innerW - 0.2, innerD - 0.2, 48, 32);
     const surfaceMat = new THREE.MeshStandardMaterial({
       color: Pal.seaSurface,
       roughness: 0.12,
@@ -1008,79 +1046,63 @@
     waterMesh.renderOrder = 2;
     poolGroup.add(waterMesh);
 
+    // Dark contact where the water meets the wall — not a bright surface rail.
     const edgeMat = new THREE.MeshStandardMaterial({
-      color: Pal.seaHighlight,
-      roughness: 0.22,
-      metalness: 0.08,
+      color: 0x06383c,
+      roughness: 0.5,
+      metalness: 0.02,
       transparent: true,
-      opacity: 0.62,
-      emissive: Pal.seaDeep,
-      emissiveIntensity: 0.04,
+      opacity: 0.4,
       depthWrite: false,
     });
     function waterEdge(w, d, x, z) {
-      const e = new THREE.Mesh(new THREE.BoxGeometry(w, 0.014, d), edgeMat);
-      e.position.set(x, WATER_Y + 0.008, z);
+      const e = new THREE.Mesh(new THREE.BoxGeometry(w, 0.012, d), edgeMat);
+      e.position.set(x, WATER_Y - 0.004, z);
       e.renderOrder = 3;
       poolGroup.add(e);
     }
-    waterEdge(tankW - 0.05, 0.035, 0, -tankD / 2 + 0.04);
-    waterEdge(tankW - 0.05, 0.035, 0, tankD / 2 - 0.04);
-    waterEdge(0.035, tankD - 0.08, -tankW / 2 + 0.04, 0);
-    waterEdge(0.035, tankD - 0.08, tankW / 2 - 0.04, 0);
+    waterEdge(innerW - 0.22, 0.04, 0, -(halfD - 0.12));
+    waterEdge(innerW - 0.22, 0.04, 0, halfD - 0.12);
+    waterEdge(0.04, innerD - 0.28, -(halfW - 0.12), 0);
+    waterEdge(0.04, innerD - 0.28, halfW - 0.12, 0);
 
-    // Grey tile rim
-    const ledgeMat = new THREE.MeshStandardMaterial({
-      map: marbleTex,
-      color: Pal.rim || 0xc5c9cf,
-      roughness: 0.4,
-      metalness: 0.08,
-    });
-    const lipY = WATER_Y + 0.12;
-    // Rim skirt under marble — keep top at/below lipY (no protrusion above ledge).
-    box(tankOuter, 7.15, 0.40, 0.08, 0, lipY - 0.2, -2.75, true);
-    box(tankOuter, 7.15, 0.40, 0.08, 0, lipY - 0.2, 2.75, true);
-    box(tankOuter, 0.08, 0.40, 5.6, -3.55, lipY - 0.2, 0, true);
-    box(tankOuter, 0.08, 0.40, 5.6, 3.55, lipY - 0.2, 0, true);
-    // Marble ledge: extend inward to cover tankOuter top at ±2.3 (was reading as grey 幼管).
-    // Far/near: center ±2.675, depth 1.05 → spans ~[±3.20, ±2.15], meets wood trim.
-    box(ledgeMat, 7.25, 0.06, 1.05, 0, lipY + 0.03, -2.675, true);
-    box(ledgeMat, 7.25, 0.06, 1.05, 0, lipY + 0.03, 2.675, true);
-    // Sides: cover outer walls at x=±3.27
-    box(ledgeMat, 1.05, 0.06, 5.0, -3.275, lipY + 0.03, 0, true);
-    box(ledgeMat, 1.05, 0.06, 5.0, 3.275, lipY + 0.03, 0, true);
-    // Seat counter: near marble continues toward the angler (foreground table).
-    const counterZ = 3.62;
-    box(ledgeMat, 6.6, 0.06, 1.15, 0, lipY + 0.03, counterZ, true);
-    box(tankOuter, 6.6, 0.9, 1.12, 0, lipY + 0.03 - 0.48, counterZ, true);
-    const woodMat = new THREE.MeshStandardMaterial({
-      map: woodTex,
-      color: 0xb89870,
-      roughness: 0.55,
-      metalness: 0.02,
-    });
-    box(woodMat, 6.0, 0.04, 0.12, 0, lipY + 0.05, -2.1, false);
-    box(woodMat, 6.0, 0.04, 0.12, 0, lipY + 0.05, 2.1, false);
-    box(woodMat, 0.12, 0.04, 4.1, -3.0, lipY + 0.05, 0, false);
-    box(woodMat, 0.12, 0.04, 4.1, 3.0, lipY + 0.05, 0, false);
+    // Coping: light top slab, darker sides already built. Inward overhang
+    // shows the freeboard and a shadow line under the lip.
+    const capY = (capBottom + deckTop) / 2;
+    const capOuterX = outerHalfW + 0.05;
+    const farInnerZ = -(halfD - overhang);
+    const farOuterZ = -(outerHalfD + 0.05);
+    box(
+      capMat,
+      capOuterX * 2,
+      capT,
+      Math.abs(farOuterZ - farInnerZ),
+      0,
+      capY,
+      (farInnerZ + farOuterZ) / 2,
+      true
+    );
+    const sideInnerX = halfW - overhang;
+    const sideOuterX = outerHalfW + 0.05;
+    const sideCapW = sideOuterX - sideInnerX;
+    const sideCapD = (halfD - overhang) * 2;
+    box(capMat, sideCapW, capT, sideCapD, -(sideInnerX + sideOuterX) / 2, capY, 0, true);
+    box(capMat, sideCapW, capT, sideCapD, (sideInnerX + sideOuterX) / 2, capY, 0, true);
+    // Near deck continues the coping toward the angler (tackle sits on this).
+    const deckFarZ = halfD - overhang;
+    const deckNearZ = 3.28;
+    box(capMat, capOuterX * 2, capT, deckNearZ - deckFarZ, 0, capY, (deckFarZ + deckNearZ) / 2, true);
+    const skirtTop = capBottom + 0.01;
+    const skirtH = skirtTop - outerBottom;
+    box(sideMat, shellW - 0.28, skirtH, deckNearZ - outerHalfD - 0.04, 0, (outerBottom + skirtTop) / 2, (outerHalfD + 0.03 + deckNearZ) / 2, true);
 
-    // Faint under-ledge cool strip — reflected pool light, not a neon tube.
-    const ledMat = new THREE.MeshStandardMaterial({
-      color: Pal.seaDeep,
-      emissive: Pal.seaDeep,
-      emissiveIntensity: 0.04,
-      roughness: 0.55,
-    });
-    function ledStrip(w, d, x, z) {
-      const s = new THREE.Mesh(new THREE.BoxGeometry(w, 0.025, d), ledMat);
-      s.position.set(x, lipY - 0.42, z);
-      poolGroup.add(s);
-      return s;
-    }
-    ledStrip(7.0, 0.03, 0, -2.78);
-    ledStrip(7.0, 0.03, 0, 2.78);
-    ledStrip(0.03, 5.5, -3.57, 0);
-    ledStrip(0.03, 5.5, 3.57, 0);
+    // Shadow lip under the inward overhang (top vs underside).
+    const lipY = capBottom - 0.018;
+    const lipT = 0.028;
+    box(lipShadowMat, innerW - 0.55, lipT, 0.07, 0, lipY, farInnerZ - 0.02, false);
+    box(lipShadowMat, innerW - 0.55, lipT, 0.07, 0, lipY, deckFarZ + 0.02, false);
+    box(lipShadowMat, 0.07, lipT, sideCapD - 0.2, -(sideInnerX + 0.02), lipY, 0, false);
+    box(lipShadowMat, 0.07, lipT, sideCapD - 0.2, sideInnerX + 0.02, lipY, 0, false);
 
     // Underwater air stones only (surface T-pipe removed — looked like stray bar on water)
     const bubbler = new THREE.Mesh(
@@ -1279,7 +1301,7 @@
 
     rodParts.rotation.z = Math.PI / 2.15;
     rodParts.rotation.y = -0.32;
-    rodParts.position.set(0.95, 0.95, 2.35);
+    rodParts.position.set(0.95, deckTop + 0.34, 2.35);
     rodTip.add(rodParts);
     scene.add(rodTip);
 
@@ -1326,12 +1348,12 @@
     );
     restDot.position.set(0.12, 0.05, 0.04);
     rest.add(restDot);
-    rest.position.set(1.55, lipY + 0.07, 3.28);
+    rest.position.set(1.35, deckTop + 0.02, 2.7);
     rest.scale.setScalar(1.45);
     rest.rotation.y = 0.08;
     scene.add(rest);
 
-    addSeatTackle(lipY + 0.06);
+    addSeatTackle(deckTop);
 
     // No decorative shrimp in pool (Louis: 池入面嘅蝦可以唔要)
 
@@ -1439,14 +1461,22 @@
     const ctx = c.getContext("2d");
     const div = 4;
     const cell = size / div;
+    const grout = Math.max(4, Math.round(size * 0.018));
+    ctx.fillStyle = "#23272b";
+    ctx.fillRect(0, 0, size, size);
     for (let y = 0; y < div; y++) {
       for (let x = 0; x < div; x++) {
-        const shade = 186 + ((x + y) % 2) * 10 + Math.floor(Math.random() * 6);
-        ctx.fillStyle = `rgb(${shade},${shade + 1},${shade + 3})`;
-        ctx.fillRect(x * cell, y * cell, cell + 0.5, cell + 0.5);
-        ctx.strokeStyle = "rgba(120,124,132,0.35)";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(x * cell + 1, y * cell + 1, cell - 2, cell - 2);
+        const dark = (x + y) % 2 === 0;
+        const base = dark ? 58 : 132;
+        const shade = base + Math.floor(Math.random() * 10) - 4;
+        ctx.fillStyle = `rgb(${shade},${shade + 1},${shade + 4})`;
+        const px = x * cell + grout;
+        const py = y * cell + grout;
+        const tw = cell - grout * 2;
+        const th = cell - grout * 2;
+        ctx.fillRect(px, py, tw, th);
+        ctx.fillStyle = dark ? "rgba(0,0,0,0.18)" : "rgba(255,255,255,0.07)";
+        ctx.fillRect(px, py, tw, Math.max(2, grout));
       }
     }
     const tex = new THREE.CanvasTexture(c);
