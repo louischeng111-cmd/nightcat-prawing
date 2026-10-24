@@ -72,6 +72,8 @@ html, body {
   border-radius: 16px;
   overflow: hidden;
   background: var(--sage);
+  /* Middle-view drag is look-yaw; don't let the browser steal it. */
+  touch-action: none;
 }
 @media (min-width: 840px) {
   #canvas-wrap {

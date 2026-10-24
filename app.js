@@ -132,6 +132,7 @@
       slowUntil: 0,
       stampUntil: 0,
     },
+    camYaw: 0,
     splash: [],
     adPanels: [],
   };
@@ -611,9 +612,85 @@
       game.camLook.set(0, 0.42, -0.45);
     }
     game.camHome.copy(camera.position);
-    camera.lookAt(game.camLook);
     camera.updateProjectionMatrix();
+    // Resize keeps the current look yaw. Distance and pitch stay on this pose.
+    frameCamera(0);
   }
+
+  // In-pool look: drag the pool view left/right to yaw around world Y.
+  // Positive yaw looks to the player's right. The angle is held on release.
+  const CAM_YAW_LIMIT = (32 * Math.PI) / 180;
+  const CAM_YAW_PER_PX = CAM_YAW_LIMIT / 160;
+  const PAN_DEADZONE = 6;
+  let _yawAxis = null;
+
+  function frameCamera(push) {
+    if (!camera || !game.camHome || !game.camLook) return;
+    if (!_yawAxis) _yawAxis = new THREE.Vector3(0, 1, 0);
+    const home = game.camHome;
+    const look = game.camLook;
+    const dist = home.distanceTo(look) || 1;
+    const dir = look.clone().sub(home).multiplyScalar(1 / dist);
+    // Home pose is farther than the original ~4.7m; keep the bite push readable.
+    const distScale = Math.min(2.4, Math.max(1, dist / 4.65));
+    camera.position.copy(home).add(dir.multiplyScalar((push || 0) * distScale));
+    const lookOffset = look.clone().sub(camera.position);
+    const yaw = game.camYaw || 0;
+    if (yaw) lookOffset.applyAxisAngle(_yawAxis, -yaw);
+    camera.lookAt(camera.position.clone().add(lookOffset));
+  }
+
+  function canPanCamera() {
+    if (!game.sceneReady || !camera) return false;
+    if (!hudEl || hudEl.classList.contains("hidden")) return false;
+    if (splashEl && !splashEl.classList.contains("hidden")) return false;
+    if (setupEl && !setupEl.classList.contains("hidden")) return false;
+    return true;
+  }
+
+  function bindLookPan() {
+    const wrap = $("canvas-wrap");
+    if (!wrap) return;
+    let pointerId = null;
+    let startX = 0;
+    let startYaw = 0;
+
+    wrap.addEventListener("pointerdown", (e) => {
+      if (!canPanCamera()) return;
+      if (e.button != null && e.button !== 0) return;
+      const t = e.target;
+      if (t && t.closest && t.closest("button, a, input, select, textarea, [role='button']")) return;
+      pointerId = e.pointerId;
+      startX = e.clientX;
+      startYaw = game.camYaw || 0;
+      if (wrap.setPointerCapture) {
+        try { wrap.setPointerCapture(e.pointerId); } catch (err) {}
+      }
+    });
+
+    wrap.addEventListener("pointermove", (e) => {
+      if (pointerId == null || e.pointerId !== pointerId) return;
+      if (!canPanCamera()) {
+        pointerId = null;
+        return;
+      }
+      const dx = e.clientX - startX;
+      if (Math.abs(dx) < PAN_DEADZONE) return;
+      const signed = dx > 0 ? dx - PAN_DEADZONE : dx + PAN_DEADZONE;
+      let yaw = startYaw + signed * CAM_YAW_PER_PX;
+      if (yaw > CAM_YAW_LIMIT) yaw = CAM_YAW_LIMIT;
+      if (yaw < -CAM_YAW_LIMIT) yaw = -CAM_YAW_LIMIT;
+      game.camYaw = yaw;
+    });
+
+    function endPan(e) {
+      if (pointerId == null || (e && e.pointerId !== pointerId)) return;
+      pointerId = null;
+    }
+    wrap.addEventListener("pointerup", endPan);
+    wrap.addEventListener("pointercancel", endPan);
+  }
+  bindLookPan();
 
   function initScene() {
     if (typeof THREE === "undefined") {
@@ -1798,12 +1875,7 @@
         const wave = Math.sin(Math.min(1, Math.max(0, u)) * Math.PI);
         push = (game.wow.camPush || 0.25) * wave;
       }
-      const look = game.camLook || new THREE.Vector3(0, 0.7, -0.55);
-      const dir = look.clone().sub(game.camHome).normalize();
-      // Home pose is farther than the original ~4.7m; keep the bite push readable.
-      const distScale = Math.min(2.4, Math.max(1, game.camHome.distanceTo(look) / 4.65));
-      camera.position.copy(game.camHome).add(dir.multiplyScalar(push * distScale));
-      camera.lookAt(look);
+      frameCamera(push);
     }
 
     // Splash particles
