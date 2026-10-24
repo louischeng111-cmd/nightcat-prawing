@@ -51,18 +51,21 @@
     <!-- HUD -->
     <div id="hud" class="hidden" aria-live="polite">
       <div class="top-bar">
-        <span class="pill" id="pill-basket" title="蝦簍">🧺 <strong id="basket-count">0</strong> 尾 · <strong id="basket-weight">0.0</strong> 兩</span>
-        <span class="pill" id="pill-dex" title="圖鑑">📖圖鑑 <strong id="dex-count">0/6</strong></span>
-        <span class="pill" id="pill-coins" title="夜幣">🪙 <strong id="coin-count">0</strong></span>
-        <span class="pill status" id="pill-status">待命</span>
-        <span class="spacer"></span>
-        <button type="button" class="icon-btn" id="btn-shop" title="商店／月卡">🛒</button>
-        <button type="button" class="icon-btn" id="btn-contracts" title="今日合約">📋</button>
-        <button type="button" class="icon-btn" id="btn-dex" title="圖鑑">🦐</button>
-        <button type="button" class="icon-btn" id="btn-boss" title="老闆冇蝦啊">📢</button>
-        <button type="button" class="icon-btn" id="btn-sound" title="聲效" aria-pressed="false">🔇</button>
-        <button type="button" class="icon-btn" id="btn-guide" title="操作說明">📖</button>
-        <button type="button" class="icon-btn" id="btn-basket" title="蝦簍">🧺</button>
+        <div class="pill-row">
+          <span class="pill" id="pill-basket" title="蝦簍">🧺 <strong id="basket-count">0</strong> 尾 · <strong id="basket-weight">0.0</strong> 兩</span>
+          <span class="pill" id="pill-dex" title="圖鑑">📖圖鑑 <strong id="dex-count">0/6</strong></span>
+          <span class="pill" id="pill-coins" title="夜幣">🪙 <strong id="coin-count">0</strong></span>
+          <span class="pill status" id="pill-status">待命</span>
+        </div>
+        <div class="icon-row">
+          <button type="button" class="icon-btn" id="btn-shop" title="商店／月卡">🛒</button>
+          <button type="button" class="icon-btn" id="btn-contracts" title="今日合約">📋</button>
+          <button type="button" class="icon-btn" id="btn-dex" title="圖鑑">🦐</button>
+          <button type="button" class="icon-btn" id="btn-boss" title="老闆冇蝦啊">📢</button>
+          <button type="button" class="icon-btn" id="btn-sound" title="聲效" aria-pressed="false">🔇</button>
+          <button type="button" class="icon-btn" id="btn-guide" title="操作說明">📖</button>
+          <button type="button" class="icon-btn" id="btn-basket" title="蝦簍">🧺</button>
+        </div>
       </div>
       <div class="contract-strip" id="contract-strip" aria-label="今日合約"></div>
       <div class="toast" id="toast" role="status"></div>
