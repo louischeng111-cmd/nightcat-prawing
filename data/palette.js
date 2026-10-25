@@ -2,7 +2,9 @@
  * 夜貓釣蝦場 — shared tokens.
  * In-pool / HUD follows Louis's Space 6 reference (2026-10-24):
  * dark charcoal chrome, mint walls, teal pool, orange strike.
- * Setup card + splash letterbox stay on the AU cover tones.
+ * 2026-10-26 neon restyle (Louis's reference screenshot): HUD chrome
+ * goes neon-green borders + bright gold numbers to match the neon
+ * night-market cover; setup card stays on the AU cover tones.
  * Exposes window.NightcatPalette. styles.css :root mirrors the CSS names.
  */
 (function (global) {
@@ -26,11 +28,12 @@
     signGold: 0xe4c36a,
     // HUD chrome
     chrome: 0x101614,
-    card: 0x14211c,
+    card: 0x101d1a,
     line: 0x2f9a78,
+    neon: 0x2bff88,
     orange: 0xf26512,
     orangeHot: 0xff8a2a,
-    gold: 0xe6c15a,
+    gold: 0xffca28,
     // AU setup / splash (do not drive the pool)
     setupWall: 0xe8e2dc,
     setupWallDeep: 0xd9d3cc,
@@ -59,6 +62,7 @@
     "--chrome": hex(T.chrome),
     "--card": hex(T.card),
     "--line": hex(T.line),
+    "--neon": hex(T.neon),
     "--orange": hex(T.orange),
     "--orange-hot": hex(T.orangeHot),
     "--gold": hex(T.gold),

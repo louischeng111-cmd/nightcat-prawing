@@ -5,11 +5,12 @@
   --bg: #101614;
   --bg-warm: #101614;
   --chrome: #101614;
-  --card: #14211c;
+  --card: #101d1a;
   --line: #2f9a78;
+  --neon: #2bff88;
   --orange: #f26512;
   --orange-hot: #ff8a2a;
-  --gold: #e6c15a;
+  --gold: #ffca28;
   --hud-text: #f4faf6;
   --sage: #8fd4b4;
   --wall: #e8e2dc;
@@ -34,8 +35,8 @@
   --sea-button: #8eafd0;
   --rod-red: #c51628;
   --rod-black: #1a1c20;
-  --amber: #e6c15a;
-  --amber-soft: #e6c15a;
+  --amber: #ffca28;
+  --amber-soft: #ffca28;
   --muted: #6e6860;
   --muted-on-dark: #b7c4bc;
   --danger: #b42318;
@@ -419,7 +420,7 @@ html, body {
   justify-content: center;
   gap: 0.05rem;
   background: var(--card);
-  border: 1px solid var(--line);
+  border: 2px solid var(--neon);
   border-radius: 8px;
   padding: 0.22rem 0.45rem 0.28rem;
   min-height: 46px;
@@ -429,7 +430,7 @@ html, body {
   white-space: nowrap;
   color: var(--hud-text);
   flex: 1 1 0;
-  box-shadow: none;
+  box-shadow: 0 0 10px rgba(43, 255, 136, 0.28);
 }
 .pill .k {
   font-size: 0.62rem;
@@ -465,7 +466,7 @@ html, body {
   flex: 0 0 auto;
   background: var(--card);
   color: var(--hud-text);
-  border: 1px solid var(--line);
+  border: 2px solid #ff5252;
   border-radius: 999px;
   padding: 0.22rem 0.7rem;
   min-height: 32px;
@@ -475,6 +476,17 @@ html, body {
   cursor: pointer;
   white-space: nowrap;
 }
+.sound-pill::after {
+  content: "";
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--neon);
+  margin-left: 0.45rem;
+  vertical-align: middle;
+  box-shadow: 0 0 6px rgba(43, 255, 136, 0.8);
+}
 .icon-btn {
   appearance: none;
   flex: 0 0 34px;
@@ -483,16 +495,24 @@ html, body {
   max-width: 34px;
   height: 32px;
   border-radius: 8px;
-  border: 1px solid var(--line);
+  border: 2px solid var(--neon);
   background: var(--card);
   color: var(--hud-text);
-  box-shadow: none;
+  box-shadow: 0 0 8px rgba(43, 255, 136, 0.25);
   cursor: pointer;
   font-size: 0.95rem;
   line-height: 1;
   display: grid;
   place-items: center;
   padding: 0;
+}
+#btn-dex, #btn-boss {
+  border-color: #c86bff;
+  box-shadow: 0 0 8px rgba(200, 107, 255, 0.35);
+}
+#btn-guide, #btn-basket {
+  border-color: #4da3ff;
+  box-shadow: 0 0 8px rgba(77, 163, 255, 0.35);
 }
 @media (min-width: 840px) {
   .pill { min-height: 50px; font-size: 0.8rem; }
@@ -609,31 +629,32 @@ html, body {
   gap: 0.4rem;
 }
 .bottom-bar .btn-action {
-  background: var(--card);
-  color: var(--hud-text);
-  border: 1px solid var(--line);
+  background: linear-gradient(180deg, #155a3e 0%, #0d3b2a 55%, #0a2a20 100%);
+  color: #fff;
+  border: 2px solid var(--neon);
   border-radius: 10px;
   padding: 0.42rem 0.55rem;
   font-size: 0.82rem;
-  box-shadow: none;
+  box-shadow: 0 0 10px rgba(43, 255, 136, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 .bottom-bar .btn-action.fire {
   width: 100%;
   flex: none;
   min-height: 58px;
-  border: none;
+  border: 2px solid #ffc93c;
   border-radius: 16px;
   padding: 0.7rem 1rem;
-  background: linear-gradient(180deg, #ff8a3d 0%, var(--orange-hot) 30%, var(--orange) 58%, #e4570c 100%);
-  color: #fff;
+  background: linear-gradient(180deg, #ffc93c 0%, #ff9100 35%, var(--orange) 70%, #e4570c 100%);
+  color: #ffdf3d;
+  text-shadow: 0 2px 0 rgba(122, 36, 0, 0.9), 0 0 14px rgba(0, 0, 0, 0.35);
   font-size: 1.45rem;
   font-weight: 900;
   letter-spacing: 0.16em;
-  box-shadow: 0 8px 18px rgba(242, 101, 18, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  box-shadow: 0 8px 18px rgba(242, 101, 18, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 .bottom-bar .btn-action.fire:hover:not(:disabled) {
   filter: brightness(1.07);
-  box-shadow: 0 10px 24px rgba(242, 101, 18, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  box-shadow: 0 10px 24px rgba(242, 101, 18, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 .bottom-bar .btn-action.fire:active:not(:disabled) { transform: scale(0.98); }
 .bottom-bar .btn-action.fire .bolt {
@@ -830,9 +851,9 @@ html, body {
 .contract-strip::-webkit-scrollbar { display: none; }
 .contract-chip {
   background: var(--card);
-  border: 1px solid var(--line);
+  border: 2px solid var(--neon);
   color: var(--hud-text);
-  box-shadow: none;
+  box-shadow: 0 0 8px rgba(43, 255, 136, 0.25);
   border-radius: 10px;
   padding: 0.4rem 0.75rem;
   min-height: 36px;
@@ -852,7 +873,7 @@ html, body {
 }
 .contract-chip .prog {
   color: var(--gold);
-  font-weight: 700;
+  font-weight: 800;
   margin-left: 0.2rem;
 }
 
