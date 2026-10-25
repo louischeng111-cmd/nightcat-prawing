@@ -720,17 +720,22 @@
     renderer.setSize(wrap.clientWidth, wrap.clientHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    // Beauty pass: filmic tone mapping for richer, less washed-out colour.
+    if (THREE.ACESFilmicToneMapping !== undefined) {
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.12;
+    }
     if (renderer.outputColorSpace !== undefined && THREE.SRGBColorSpace) {
       renderer.outputColorSpace = THREE.SRGBColorSpace;
     }
     wrap.appendChild(renderer.domElement);
 
     // Bright even hall, with one key soft enough to leave a light pool shadow.
-    const hemi = new THREE.HemisphereLight(0xfffaf6, 0xd4cfc6, 0.74);
+    const hemi = new THREE.HemisphereLight(0xfffaf6, 0xd4cfc6, 0.8);
     scene.add(hemi);
-    const amb = new THREE.AmbientLight(0xfff8f2, 0.44);
+    const amb = new THREE.AmbientLight(0xfff8f2, 0.4);
     scene.add(amb);
-    const key = new THREE.DirectionalLight(0xfffaf6, 0.72);
+    const key = new THREE.DirectionalLight(0xfffaf6, 0.88);
     key.position.set(3.2, 9.2, 4.2);
     key.target.position.set(0, 0.35, 0.15);
     scene.add(key.target);
@@ -775,7 +780,7 @@
       scene.add(pl);
     });
 
-    const waterFill = new THREE.PointLight(0x8ec4e8, 0.12, 9, 2);
+    const waterFill = new THREE.PointLight(0x8ec4e8, 0.2, 9, 2);
     waterFill.position.set(0, 2.0, 0.2);
     scene.add(waterFill);
 
@@ -1190,14 +1195,14 @@
     const waterGeo = new THREE.PlaneGeometry(innerW - 0.2, innerD - 0.2, 48, 32);
     const surfaceMat = new THREE.MeshStandardMaterial({
       color: seaSurfaceTeal,
-      roughness: 0.16,
-      metalness: 0.1,
+      roughness: 0.11,
+      metalness: 0.12,
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.86,
       side: THREE.DoubleSide,
       depthWrite: false,
       emissive: seaTeal,
-      emissiveIntensity: 0.04,
+      emissiveIntensity: 0.08,
     });
     waterMesh = new THREE.Mesh(waterGeo, surfaceMat);
     waterMesh.rotation.x = -Math.PI / 2;
@@ -1932,9 +1937,9 @@
         const x = pos.getX(i);
         const y = pos.getY(i);
         const z =
-          Math.sin(x * 2.1 + t * 1.6) * 0.028 +
-          Math.cos(y * 2.4 + t * 1.3) * 0.02 +
-          Math.sin((x + y) * 1.1 + t * 0.7) * 0.012;
+          Math.sin(x * 2.1 + t * 1.6) * 0.034 +
+          Math.cos(y * 2.4 + t * 1.3) * 0.024 +
+          Math.sin((x + y) * 1.1 + t * 0.7) * 0.014;
         pos.setZ(i, z);
       }
       pos.needsUpdate = true;
