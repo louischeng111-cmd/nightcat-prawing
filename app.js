@@ -906,17 +906,17 @@
       });
       return g;
     }
-    // Five ad panels, all one uniform size (4.0 x 2.0) and one height,
-    // neatly centered (2026-10-25 per Louis: 總數五張、比例統一、
-    // 整齊置中; red-circled zones in his screenshots). Front row of
-    // three, evenly spaced and centered; one per side wall, centered
-    // on the wall. z follows the back wall.
-    addAdPanel(4.0, 2.0, -8, 3.1, -8.75, 0, "green", "green");
-    addAdPanel(4.0, 2.0, 0, 3.1, -8.75, 0, "black", "black");
-    addAdPanel(4.0, 2.0, 8, 3.1, -8.75, 0, "teal", "teal");
-    // Side walls: one panel each (Louis: 左右不要兩塊，一塊就可以).
-    addAdPanel(4.0, 2.0, -18.75, 3.1, 4.0, Math.PI / 2, "side", "side_l");
-    addAdPanel(4.0, 2.0, 18.75, 3.1, 4.0, -Math.PI / 2, "side", "side_r");
+    // Five ad panels, all one uniform size, neatly centered. Enlarged
+    // 2x 2026-10-25 per Louis (廣告版再放大2倍): 4.0 x 2.0 -> 8.0 x 4.0.
+    // Front row spacing widens with the panels (centers -12 / 0 / 12,
+    // gaps 4.0) so the three stay separate and inside the side walls.
+    // z follows the back wall.
+    addAdPanel(8.0, 4.0, -12, 3.1, -8.75, 0, "green", "green");
+    addAdPanel(8.0, 4.0, 0, 3.1, -8.75, 0, "black", "black");
+    addAdPanel(8.0, 4.0, 12, 3.1, -8.75, 0, "teal", "teal");
+    // Side walls: one panel each, same uniform size, centered on the wall.
+    addAdPanel(8.0, 4.0, -18.75, 3.1, 4.0, Math.PI / 2, "side", "side_l");
+    addAdPanel(8.0, 4.0, 18.75, 3.1, 4.0, -Math.PI / 2, "side", "side_r");
 
     // (Small digital scoreboard removed 2026-10-25 per Louis — the
     // yellow-circled box above the center panel; HUD already shows
