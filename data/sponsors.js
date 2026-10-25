@@ -14,6 +14,57 @@
    */
   const CAMPAIGNS = [
     {
+      id: "house_ads_2026",
+      brandId: "nightcat_house",
+      nameZh: "五幅廣告版內容 · Louis 2026-10-25 批准",
+      startDate: "2026-10-25",
+      endDate: "2027-10-25",
+      ctaBlurb: "三個虛構佔位品牌＋兩個自家廣告；將來有真贊助商可直接換名換色",
+      priority: 30,
+      placements: {
+        green: {
+          bg: "#101828",
+          accent: "#e8c15a",
+          title: "今晚開池",
+          subtitle: "夜貓釣蝦場",
+          lines: ["深夜都有蝦釣 · 新手友善"],
+          footer: "自家廣告",
+        },
+        black: {
+          bg: "#2f4e6e",
+          accent: "#ffffff",
+          title: "一竿在手",
+          subtitle: "極光釣具",
+          lines: ["手竿 · 天平釣組專門店", "蝦到擒來"],
+          footer: "佔位品牌",
+        },
+        teal: {
+          bg: "#b23a12",
+          accent: "#ffffff",
+          title: "赤尾青",
+          subtitle: "赤尾青工房",
+          lines: ["蝦最愛 · 即開即用"],
+          footer: "佔位品牌",
+        },
+        side_l: {
+          bg: "#7a1f1f",
+          accent: "#f5e6c8",
+          title: "即釣即煮",
+          subtitle: "夜貓食堂",
+          lines: ["釣完蝦，過嚟食宵夜"],
+          footer: "自家廣告",
+        },
+        side_r: {
+          bg: "#8b0000",
+          accent: "#ffc107",
+          title: "釣蝦王爭霸",
+          subtitle: "夜貓盃",
+          lines: ["每月一戰 · 贏夜幣"],
+          footer: "佔位活動",
+        },
+      },
+    },
+    {
       id: "demo_autumn_tackle_2026",
       brandId: "demo_tackle_hk",
       nameZh: "秋夜釣具週 · 示範檔",
