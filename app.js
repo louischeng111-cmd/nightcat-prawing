@@ -133,6 +133,7 @@
       stampUntil: 0,
     },
     camYaw: 0,
+    camPitchY: 0,
     splash: [],
     adPanels: [],
   };
@@ -555,7 +556,7 @@
     lidPivot.add(logoPlate);
     lidPivot.rotation.x = -0.42;
     boxG.add(lidPivot);
-    boxG.position.set(-1.15, tableY, 2.28);
+    boxG.position.set(-1.15, tableY, 2.83);
     boxG.rotation.y = 0.22;
     boxG.scale.setScalar(1.7);
     tackle.add(boxG);
@@ -588,7 +589,7 @@
     butt.rotation.z = Math.PI / 2;
     butt.position.x = xCursor - 0.02;
     spare.add(butt);
-    spare.position.set(1.85, tableY + 0.02, 2.2);
+    spare.position.set(1.85, tableY + 0.02, 2.75);
     spare.rotation.y = -0.06;
     tackle.add(spare);
 
@@ -602,14 +603,14 @@
     if (!camera || !game.camLook) return;
     const aspect = camera.aspect > 0 ? camera.aspect : 1;
     if (aspect < 0.9) {
-      // Between eye level and the old overhead: a bit higher, still well under 55°.
-      // Side decks stay cropped at yaw 0; ±32° still brings that side in.
-      camera.fov = 50;
-      camera.position.set(0.05, 4.15, 5);
+      // Bigger pool (7.4 x 5.0): pulled back and higher so the whole rim
+      // and the far ad row still fit a narrow phone at yaw/pitch 0.
+      camera.fov = 54;
+      camera.position.set(0.05, 5.15, 6.35);
       game.camLook.set(0, 0.7, -0.3);
     } else {
-      camera.fov = 46;
-      camera.position.set(0.12, 5.85, 8.35);
+      camera.fov = 48;
+      camera.position.set(0.12, 6.7, 10.4);
       game.camLook.set(0, 0.42, -0.45);
     }
     game.camHome.copy(camera.position);
@@ -618,10 +619,14 @@
     frameCamera(0);
   }
 
-  // In-pool look: drag the pool view left/right to yaw around world Y.
-  // Positive yaw looks to the player's right. The angle is held on release.
+  // In-pool look: drag to look around — left/right yaws around world Y,
+  // up/down pitches the look target (camPitchY, held on release).
+  // Positive yaw looks to the player's right; dragging up looks up.
   const CAM_YAW_LIMIT = (32 * Math.PI) / 180;
   const CAM_YAW_PER_PX = CAM_YAW_LIMIT / 160;
+  const CAM_PITCH_MIN = -1.1;
+  const CAM_PITCH_MAX = 1.8;
+  const CAM_PITCH_PER_PX = 0.006;
   const PAN_DEADZONE = 6;
   let _yawAxis = null;
 
@@ -629,7 +634,8 @@
     if (!camera || !game.camHome || !game.camLook) return;
     if (!_yawAxis) _yawAxis = new THREE.Vector3(0, 1, 0);
     const home = game.camHome;
-    const look = game.camLook;
+    const look = game.camLook.clone();
+    look.y += game.camPitchY || 0;
     const dist = home.distanceTo(look) || 1;
     const dir = look.clone().sub(home).multiplyScalar(1 / dist);
     // Home pose is farther than the original ~4.7m; keep the bite push readable.
@@ -654,7 +660,9 @@
     if (!wrap) return;
     let pointerId = null;
     let startX = 0;
+    let startY = 0;
     let startYaw = 0;
+    let startPitch = 0;
 
     wrap.addEventListener("pointerdown", (e) => {
       if (!canPanCamera()) return;
@@ -663,7 +671,9 @@
       if (t && t.closest && t.closest("button, a, input, select, textarea, [role='button']")) return;
       pointerId = e.pointerId;
       startX = e.clientX;
+      startY = e.clientY;
       startYaw = game.camYaw || 0;
+      startPitch = game.camPitchY || 0;
       if (wrap.setPointerCapture) {
         try { wrap.setPointerCapture(e.pointerId); } catch (err) {}
       }
@@ -676,12 +686,21 @@
         return;
       }
       const dx = e.clientX - startX;
-      if (Math.abs(dx) < PAN_DEADZONE) return;
-      const signed = dx > 0 ? dx - PAN_DEADZONE : dx + PAN_DEADZONE;
-      let yaw = startYaw + signed * CAM_YAW_PER_PX;
-      if (yaw > CAM_YAW_LIMIT) yaw = CAM_YAW_LIMIT;
-      if (yaw < -CAM_YAW_LIMIT) yaw = -CAM_YAW_LIMIT;
-      game.camYaw = yaw;
+      const dy = e.clientY - startY;
+      if (Math.abs(dx) >= PAN_DEADZONE) {
+        const signed = dx > 0 ? dx - PAN_DEADZONE : dx + PAN_DEADZONE;
+        let yaw = startYaw + signed * CAM_YAW_PER_PX;
+        if (yaw > CAM_YAW_LIMIT) yaw = CAM_YAW_LIMIT;
+        if (yaw < -CAM_YAW_LIMIT) yaw = -CAM_YAW_LIMIT;
+        game.camYaw = yaw;
+      }
+      if (Math.abs(dy) >= PAN_DEADZONE) {
+        const signed = dy > 0 ? dy - PAN_DEADZONE : dy + PAN_DEADZONE;
+        let pitch = startPitch - signed * CAM_PITCH_PER_PX;
+        if (pitch > CAM_PITCH_MAX) pitch = CAM_PITCH_MAX;
+        if (pitch < CAM_PITCH_MIN) pitch = CAM_PITCH_MIN;
+        game.camPitchY = pitch;
+      }
     });
 
     function endPan(e) {
@@ -740,13 +759,13 @@
     key.target.position.set(0, 0.35, 0.15);
     scene.add(key.target);
     key.castShadow = true;
-    key.shadow.mapSize.set(1024, 1024);
+    key.shadow.mapSize.set(2048, 2048);
     key.shadow.camera.near = 1;
-    key.shadow.camera.far = 22;
-    key.shadow.camera.left = -8;
-    key.shadow.camera.right = 8;
-    key.shadow.camera.top = 8;
-    key.shadow.camera.bottom = -8;
+    key.shadow.camera.far = 26;
+    key.shadow.camera.left = -10;
+    key.shadow.camera.right = 10;
+    key.shadow.camera.top = 10;
+    key.shadow.camera.bottom = -10;
     key.shadow.bias = -0.0006;
     key.shadow.normalBias = 0.03;
     scene.add(key);
@@ -809,8 +828,10 @@
       new THREE.PlaneGeometry(24, 24),
       new THREE.MeshStandardMaterial({
         map: floorTileTex,
+        bumpMap: floorTileTex,
+        bumpScale: 0.02,
         color: 0xffffff,
-        roughness: 0.88,
+        roughness: 0.72,
         metalness: 0.02,
       })
     );
@@ -828,9 +849,14 @@
       emissive: hallWall,
       emissiveIntensity: 0.12,
     });
+    const sideWallBump = makeNoiseTexture(256, "#8a8a8a", "#9c9c9c");
+    sideWallBump.wrapS = sideWallBump.wrapT = THREE.RepeatWrapping;
+    sideWallBump.repeat.set(8, 4);
     const sideWallMat = new THREE.MeshStandardMaterial({
       color: hallWall,
-      roughness: 0.92,
+      bumpMap: sideWallBump,
+      bumpScale: 0.02,
+      roughness: 0.85,
       metalness: 0.0,
       emissive: hallWall,
       emissiveIntensity: 0.1,
@@ -870,7 +896,7 @@
       const tex = makeAdPanelTexture(512, 320, style, cre);
       const mat = new THREE.MeshStandardMaterial({
         map: tex,
-        roughness: 0.55,
+        roughness: 0.45,
         metalness: 0.05,
         emissive: 0x000000,
         emissiveIntensity: 0,
@@ -999,8 +1025,10 @@
     // well above it so freeboard, inner wall, and rim thickness read as a tank.
     // Never put a solid lid over the water.
     const WATER_Y = 0.42;
-    const innerW = 5.8;
-    const innerD = 3.9;
+    // Bigger pool (Louis: 池睇落更加大). Everything below derives from
+    // innerW/innerD except the near-rim props, which shift +0.55 in z.
+    const innerW = 7.4;
+    const innerD = 5.0;
     const wallThick = 0.56;
     const capT = 0.12;
     const freeboard = 0.46;
@@ -1025,10 +1053,10 @@
     const capMat = new THREE.MeshStandardMaterial({
       map: marbleTex,
       bumpMap: marbleBump || null,
-      bumpScale: 0.12,
+      bumpScale: 0.07,
       color: 0xfff7f0,
-      roughness: 0.48,
-      metalness: 0.06,
+      roughness: 0.38,
+      metalness: 0.04,
     });
     const sideMat = new THREE.MeshStandardMaterial({
       color: 0x8d847c,
@@ -1075,14 +1103,18 @@
       const gap = 0.016;
       const proud = 0.022;
       const colors = [0xe7dfd4, 0xddd4c8, 0xf3ece4, 0xe4dacf];
-      const mats = colors.map((color) => new THREE.MeshStandardMaterial({
+      const tileRough = [0.5, 0.58, 0.46, 0.62];
+      const tileBump = makeNoiseTexture(128, "#808080", "#a0a0a0");
+      const mats = colors.map((color, i) => new THREE.MeshStandardMaterial({
         color,
-        roughness: 0.56,
+        bumpMap: tileBump,
+        bumpScale: 0.012,
+        roughness: tileRough[i % tileRough.length],
         metalness: 0.05,
       }));
       const bevelMat = new THREE.MeshStandardMaterial({
         color: 0xf7f2eb,
-        roughness: 0.36,
+        roughness: 0.3,
         metalness: 0.08,
       });
       const spanX = shellW;
@@ -1182,7 +1214,7 @@
       side: THREE.DoubleSide,
       depthWrite: false,
       emissive: seaDeepTeal,
-      emissiveIntensity: 0.05,
+      emissiveIntensity: 0.03,
     });
     const waterVolume = new THREE.Mesh(
       new THREE.BoxGeometry(innerW - 0.16, waterDepth, innerD - 0.16),
@@ -1192,11 +1224,16 @@
     waterVolume.renderOrder = 1;
     poolGroup.add(waterVolume);
 
-    const waterGeo = new THREE.PlaneGeometry(innerW - 0.2, innerD - 0.2, 48, 32);
+    const waterGeo = new THREE.PlaneGeometry(innerW - 0.2, innerD - 0.2, 64, 44);
+    const waterBump = makeNoiseTexture(256, "#404040", "#6a6a6a");
+    waterBump.wrapS = waterBump.wrapT = THREE.RepeatWrapping;
+    waterBump.repeat.set(6, 4);
     const surfaceMat = new THREE.MeshStandardMaterial({
       color: seaSurfaceTeal,
-      roughness: 0.11,
-      metalness: 0.12,
+      bumpMap: waterBump,
+      bumpScale: 0.015,
+      roughness: 0.06,
+      metalness: 0.05,
       transparent: true,
       opacity: 0.86,
       side: THREE.DoubleSide,
@@ -1320,7 +1357,7 @@
       const stemH = style === "long" ? 0.22 : style === "short" ? 0.12 : 0.18;
 
       // Teardrop body (lathe-like via stacked tapers)
-      const body = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), bodyMat);
+      const body = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 18), bodyMat);
       body.scale.set(bodyR * 1.05, bodyH * 0.72, bodyR * 1.05);
       body.position.y = 0.0;
       body.castShadow = true;
@@ -1330,14 +1367,14 @@
       g.add(taper);
 
       // Fluorescent tip dome + thin black rings + white separator
-      const tipDome = new THREE.Mesh(new THREE.SphereGeometry(bodyR * 0.95, 12, 10), tipMat);
+      const tipDome = new THREE.Mesh(new THREE.SphereGeometry(bodyR * 0.95, 20, 14), tipMat);
       tipDome.scale.set(1, 0.85, 1);
       tipDome.position.y = bodyH * 0.55;
       g.add(tipDome);
-      const tipCap = new THREE.Mesh(new THREE.CylinderGeometry(bodyR * 0.55, bodyR * 0.9, tipH, 12), tipMat);
+      const tipCap = new THREE.Mesh(new THREE.CylinderGeometry(bodyR * 0.55, bodyR * 0.9, tipH, 20), tipMat);
       tipCap.position.y = bodyH * 0.55 + tipH * 0.35;
       g.add(tipCap);
-      const whiteBand = new THREE.Mesh(new THREE.CylinderGeometry(bodyR * 1.02, bodyR * 1.02, 0.006, 16), whiteMat);
+      const whiteBand = new THREE.Mesh(new THREE.CylinderGeometry(bodyR * 1.02, bodyR * 1.02, 0.006, 24), whiteMat);
       whiteBand.position.y = bodyH * 0.28;
       g.add(whiteBand);
       if (style === "apo") {
@@ -1391,15 +1428,15 @@
 
     // ——— 7-piece telescopic HAND shrimp rod ~210cm (no reel; Daiwa-like red/black) ———
     rodTip = new THREE.Group();
-    const carbon = new THREE.MeshStandardMaterial({ color: Pal.rodBlack, roughness: 0.28, metalness: 0.55 });
-    const carbonTip = new THREE.MeshStandardMaterial({ color: 0x2a2e34, roughness: 0.3, metalness: 0.5 });
+    const carbon = new THREE.MeshStandardMaterial({ color: Pal.rodBlack, roughness: 0.2, metalness: 0.65 });
+    const carbonTip = new THREE.MeshStandardMaterial({ color: 0x2a2e34, roughness: 0.24, metalness: 0.55 });
     const rodRedBand = new THREE.MeshStandardMaterial({ color: Pal.rodRed, roughness: 0.38, metalness: 0.22 });
     const gripMat = new THREE.MeshStandardMaterial({ color: 0x2a241c, roughness: 0.82 });
     const ringChrome = new THREE.MeshStandardMaterial({ color: 0xd0d4da, metalness: 0.88, roughness: 0.22 });
     const buttCapMat = new THREE.MeshStandardMaterial({ color: 0xa8adb6, metalness: 0.9, roughness: 0.2 });
 
     function rodSeg(rTop, rBot, len, mat, yAlong) {
-      const m = new THREE.Mesh(new THREE.CylinderGeometry(rTop, rBot, len, 12), mat);
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(rTop, rBot, len, 20), mat);
       m.position.set(0, yAlong, 0);
       m.castShadow = true;
       return m;
@@ -1451,7 +1488,7 @@
 
     rodParts.rotation.z = Math.PI / 2.15;
     rodParts.rotation.y = -0.32;
-    rodParts.position.set(0.95, deckTop + 0.34, 2.35);
+    rodParts.position.set(0.95, deckTop + 0.34, 2.90);
     rodTip.add(rodParts);
     scene.add(rodTip);
 
@@ -1498,7 +1535,7 @@
     );
     restDot.position.set(0.12, 0.05, 0.04);
     rest.add(restDot);
-    rest.position.set(0.35, deckTop + 0.02, 2.18);
+    rest.position.set(0.35, deckTop + 0.02, 2.73);
     rest.scale.setScalar(1.45);
     rest.rotation.y = 0.08;
     scene.add(rest);
