@@ -596,8 +596,12 @@
   // Positive yaw looks to the player's right; dragging up looks up.
   const CAM_YAW_LIMIT = (32 * Math.PI) / 180;
   const CAM_YAW_PER_PX = CAM_YAW_LIMIT / 160;
-  const CAM_PITCH_MIN = -1.1;
-  const CAM_PITCH_MAX = 1.8;
+  // Widened 2026-10-25 per Louis (鏡頭上下移動幅度大些):
+  // was -1.1 to +1.8 (span 2.9); now -1.8 to +3.0 (span 4.8).
+  // Up end reaches a level view (look y = camera height); down end
+  // looks well down at the water without aiming under the floor.
+  const CAM_PITCH_MIN = -1.8;
+  const CAM_PITCH_MAX = 3.0;
   const CAM_PITCH_PER_PX = 0.006;
   const PAN_DEADZONE = 6;
   let _yawAxis = null;
