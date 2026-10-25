@@ -1006,7 +1006,8 @@
     const outerHalfD = halfD + wallThick;
     game.waterY = WATER_Y;
 
-    // Marble cap from the recessed-pool pass. Outer walls are raised tiles. Water stays teal.
+    // Marble cap from the recessed-pool pass, now grey marble per Louis.
+    // Outer walls are raised tiles. Water is cover blue (see below).
     // Pool blue changed 2026-10-25 per Louis to the cover art's blue
     // (sampled from covers/cover-au-daiwa-brush.jpg water band):
     // was teal (0e948e / 0a5e5c / 1cbfb6), now royal blue.
@@ -1017,12 +1018,12 @@
       map: marbleTex,
       bumpMap: marbleBump || null,
       bumpScale: 0.07,
-      color: 0xfff7f0,
+      color: 0xe8e8e8,
       roughness: 0.38,
       metalness: 0.04,
     });
     const sideMat = new THREE.MeshStandardMaterial({
-      color: 0x8d847c,
+      color: 0x8a8a86,
       roughness: 0.92,
       metalness: 0.02,
     });
@@ -1030,7 +1031,7 @@
       map: marbleTex,
       bumpMap: marbleBump || null,
       bumpScale: 0.08,
-      color: 0xd2c6b6,
+      color: 0xd8d8d8,
       roughness: 0.68,
       metalness: 0.03,
     });
@@ -1040,7 +1041,7 @@
       metalness: 0.05,
     });
     const lipShadowMat = new THREE.MeshStandardMaterial({
-      color: 0x8d8174,
+      color: 0x8a8a86,
       roughness: 0.9,
       metalness: 0.02,
     });
@@ -1065,7 +1066,8 @@
     function addRaisedTiles() {
       const gap = 0.016;
       const proud = 0.022;
-      const colors = [0xe7dfd4, 0xddd4c8, 0xf3ece4, 0xe4dacf];
+      // Marble grey 2026-10-25 per Louis (企身磚同樣雲石灰色).
+      const colors = [0xbdbdb9, 0xa9a9a5, 0xc9c9c5, 0xb2b2ae];
       const tileRough = [0.5, 0.58, 0.46, 0.62];
       const tileBump = makeNoiseTexture(128, "#808080", "#a0a0a0");
       const mats = colors.map((color, i) => new THREE.MeshStandardMaterial({
@@ -1076,16 +1078,18 @@
         metalness: 0.05,
       }));
       const bevelMat = new THREE.MeshStandardMaterial({
-        color: 0xf7f2eb,
+        color: 0xdcdcd8,
         roughness: 0.3,
         metalness: 0.08,
       });
       const spanX = shellW;
       const spanZ = (halfD + wallThick) * 2;
       const spanY = outerH;
-      const nX = Math.max(1, Math.round(spanX / 0.42));
-      const nZ = Math.max(1, Math.round(spanZ / 0.42));
-      const nY = Math.max(1, Math.round(spanY / 0.32));
+      // Tiles bigger 2026-10-25 per Louis (企身磚方大些小): pitch
+      // 0.42 -> 0.60 (sides) and 0.32 -> 0.45 (height).
+      const nX = Math.max(1, Math.round(spanX / 0.6));
+      const nZ = Math.max(1, Math.round(spanZ / 0.6));
+      const nY = Math.max(1, Math.round(spanY / 0.45));
       const tileX = (spanX - (nX + 1) * gap) / nX;
       const tileZ = (spanZ - (nZ + 1) * gap) / nZ;
       const tileY = (spanY - (nY + 1) * gap) / nY;
@@ -1173,7 +1177,7 @@
       roughness: 0.28,
       metalness: 0.02,
       transparent: true,
-      opacity: 0.9,
+      opacity: 0.82,
       side: THREE.DoubleSide,
       depthWrite: false,
       emissive: seaDeepTeal,
@@ -1194,11 +1198,11 @@
     const surfaceMat = new THREE.MeshStandardMaterial({
       color: seaSurfaceTeal,
       bumpMap: waterBump,
-      bumpScale: 0.025,
+      bumpScale: 0.04,
       roughness: 0.06,
       metalness: 0.05,
       transparent: true,
-      opacity: 0.86,
+      opacity: 0.78,
       side: THREE.DoubleSide,
       depthWrite: false,
       emissive: seaTeal,
@@ -1282,7 +1286,7 @@
         bubbleGeo,
         new THREE.PointsMaterial({
           color: 0xf2faff,
-          size: 0.085,
+          size: 0.1,
           transparent: true,
           opacity: 0.92,
           depthWrite: false,
@@ -1297,11 +1301,12 @@
     }
     // 氣泡區 — distinct aeration columns (釣蝦場 style), x spread x1.5
     // with the widened pool (depth unchanged)
-    makeBubbleCluster(0.9, -3.3, 55);
-    makeBubbleCluster(-7.2, 2.1, 48);
-    makeBubbleCluster(7.65, 1.5, 48);
-    makeBubbleCluster(-2.7, -0.6, 40);
-    makeBubbleCluster(4.5, -2.1, 36);
+    // Bubble zones densified 2026-10-25 per Louis (氣泡區明顯啲).
+    makeBubbleCluster(0.9, -3.3, 80);
+    makeBubbleCluster(-7.2, 2.1, 70);
+    makeBubbleCluster(7.65, 1.5, 70);
+    makeBubbleCluster(-2.7, -0.6, 60);
+    makeBubbleCluster(4.5, -2.1, 55);
 
     // ——— Taiwan 阿波 / 長標 / 短標 (神綱-style silhouette; no brand logos) ———
     function buildFloatMesh(style) {
@@ -1561,7 +1566,7 @@
     const bumpCanvas = document.createElement("canvas");
     bumpCanvas.width = bumpCanvas.height = size;
     const bx = bumpCanvas.getContext("2d");
-    ctx.fillStyle = "#e6ddd2";
+    ctx.fillStyle = "#c9c9c6";
     ctx.fillRect(0, 0, size, size);
     bx.fillStyle = "rgb(168,168,168)";
     bx.fillRect(0, 0, size, size);
@@ -1585,16 +1590,17 @@
       ctx.stroke();
       bx.stroke();
     }
-    // Same warm coping as pool-3d-keep-bg, with broader veins so the slab reads up close.
+    // Grey marble 2026-10-25 per Louis (池枱面用雲石紋灰色): neutral
+    // grey base with grey veins, broader veins so the slab reads up close.
     for (let i = 0; i < 8; i++) {
       const a = 0.2 + Math.random() * 0.18;
-      vein(7 + Math.random() * 9, `rgba(112,98,86,${a})`, "rgba(70,70,70,0.85)");
+      vein(7 + Math.random() * 9, `rgba(88,88,90,${a})`, "rgba(70,70,70,0.85)");
     }
     for (let i = 0; i < 16; i++) {
       const a = 0.22 + Math.random() * 0.2;
       vein(
         1.5 + Math.random() * 3.5,
-        `rgba(${96 + Math.random() * 28},${88 + Math.random() * 22},${78 + Math.random() * 18},${a})`,
+        `rgba(${80 + Math.random() * 30},${80 + Math.random() * 30},${82 + Math.random() * 30},${a})`,
         "rgba(55,55,55,0.7)"
       );
     }
@@ -1992,10 +1998,11 @@
       for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i);
         const y = pos.getY(i);
+        // Ripple amplitude raised 2026-10-25 per Louis (水波紋明顯啲).
         const z =
-          Math.sin(x * 2.1 + t * 1.6) * 0.034 +
-          Math.cos(y * 2.4 + t * 1.3) * 0.024 +
-          Math.sin((x + y) * 1.1 + t * 0.7) * 0.014;
+          Math.sin(x * 2.1 + t * 1.6) * 0.05 +
+          Math.cos(y * 2.4 + t * 1.3) * 0.036 +
+          Math.sin((x + y) * 1.1 + t * 0.7) * 0.02;
         pos.setZ(i, z);
       }
       pos.needsUpdate = true;
