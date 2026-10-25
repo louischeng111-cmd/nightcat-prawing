@@ -556,42 +556,12 @@
     lidPivot.add(logoPlate);
     lidPivot.rotation.x = -0.42;
     boxG.add(lidPivot);
-    boxG.position.set(-1.15, tableY, 4.08);
+    boxG.position.set(-1.15, tableY, 7.83);
     boxG.rotation.y = 0.22;
     boxG.scale.setScalar(1.7);
     tackle.add(boxG);
 
-    // Telescopic shrimp rod lying on the counter (not the angler's held rod).
-    const spare = new THREE.Group();
-    const segments = [
-      [0.006, 0.008, 0.34, Pal.rodBlack],
-      [0.008, 0.01, 0.32, Pal.rodBlack],
-      [0.01, 0.012, 0.3, Pal.rodRed],
-      [0.012, 0.015, 0.32, Pal.rodBlack],
-      [0.015, 0.018, 0.36, Pal.rodBlack],
-    ];
-    let xCursor = 0.82;
-    segments.forEach(([rA, rB, len, color]) => {
-      const seg = new THREE.Mesh(
-        new THREE.CylinderGeometry(rA, rB, len, 10),
-        plastic(color, color === Pal.rodRed ? 0.38 : 0.34, color === Pal.rodRed ? 0.22 : 0.48)
-      );
-      seg.rotation.z = Math.PI / 2;
-      seg.position.x = xCursor - len / 2;
-      seg.castShadow = true;
-      spare.add(seg);
-      xCursor -= len;
-    });
-    const butt = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.02, 0.018, 0.05, 10),
-      plastic(0xb0b6be, 0.28, 0.7)
-    );
-    butt.rotation.z = Math.PI / 2;
-    butt.position.x = xCursor - 0.02;
-    spare.add(butt);
-    spare.position.set(1.85, tableY + 0.02, 4.00);
-    spare.rotation.y = -0.06;
-    tackle.add(spare);
+    // (Spare rod on the counter removed 2026-10-25 per Louis.)
 
     scene.add(tackle);
   }
@@ -605,14 +575,15 @@
     if (aspect < 0.9) {
       // Straight viewpoint (Louis's Prawing-max reference): low camera
       // looking near-horizontally across the pool, not a high overhead
-      // view. Far ad row is a pan-up away, not in the default frame.
+      // view. Raised a touch 2026-10-25 (Louis: 視覺上高番DD). Pulled
+      // back for the doubled 22.2x15 pool so the near rim stays in frame.
       camera.fov = 52;
-      camera.position.set(0.05, 3.2, 6.4);
-      game.camLook.set(0, 1.0, -0.3);
+      camera.position.set(0.05, 4.4, 10.2);
+      game.camLook.set(0, 1.3, -0.5);
     } else {
       camera.fov = 48;
-      camera.position.set(0.12, 3.1, 8.6);
-      game.camLook.set(0, 0.9, -0.6);
+      camera.position.set(0.12, 4.2, 12.6);
+      game.camLook.set(0, 1.2, -1.0);
     }
     game.camHome.copy(camera.position);
     camera.updateProjectionMatrix();
@@ -763,11 +734,11 @@
     key.castShadow = true;
     key.shadow.mapSize.set(2048, 2048);
     key.shadow.camera.near = 1;
-    key.shadow.camera.far = 26;
-    key.shadow.camera.left = -13;
-    key.shadow.camera.right = 13;
-    key.shadow.camera.top = 13;
-    key.shadow.camera.bottom = -13;
+    key.shadow.camera.far = 40;
+    key.shadow.camera.left = -20;
+    key.shadow.camera.right = 20;
+    key.shadow.camera.top = 20;
+    key.shadow.camera.bottom = -20;
     key.shadow.bias = -0.0006;
     key.shadow.normalBias = 0.03;
     scene.add(key);
@@ -785,14 +756,14 @@
     });
     const ledFrameMat = new THREE.MeshStandardMaterial({ color: 0xc8ccd2, roughness: 0.7 });
     const ledPositions = [];
-    for (const z of [-3.5, -0.5, 2.5, 5.5]) {
+    for (const z of [-7, -3, 1, 5, 9]) {
       ledPositions.push([0, hallTop - 0.18, z]);
     }
     ledPositions.forEach(([x, y, z]) => {
-      const frame = new THREE.Mesh(new THREE.BoxGeometry(13, 0.05, 0.7), ledFrameMat);
+      const frame = new THREE.Mesh(new THREE.BoxGeometry(24, 0.05, 0.7), ledFrameMat);
       frame.position.set(x, y, z);
       scene.add(frame);
-      const panel = new THREE.Mesh(new THREE.BoxGeometry(12.6, 0.04, 0.5), ledPanelMat);
+      const panel = new THREE.Mesh(new THREE.BoxGeometry(23.6, 0.04, 0.5), ledPanelMat);
       panel.position.set(x, y - 0.02, z);
       scene.add(panel);
       const pl = new THREE.PointLight(0xfffaf4, 0.2, 10, 2);
@@ -822,17 +793,17 @@
     }
     const blueGridTexBack = makeBlueGridTexture(256);
     blueGridTexBack.wrapS = blueGridTexBack.wrapT = THREE.RepeatWrapping;
-    blueGridTexBack.repeat.set(6, 5);
+    blueGridTexBack.repeat.set(10, 5);
     const blueGridTexSide = makeBlueGridTexture(256);
     blueGridTexSide.wrapS = blueGridTexSide.wrapT = THREE.RepeatWrapping;
-    blueGridTexSide.repeat.set(8, 5);
+    blueGridTexSide.repeat.set(10, 5);
     const deckTex = makeRedBrownFloorTexture(256);
     deckTex.wrapS = deckTex.wrapT = THREE.RepeatWrapping;
-    deckTex.repeat.set(6, 6);
+    deckTex.repeat.set(9, 9);
 
     // Floor — light grey squares, same hall as the reference photo.
     const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(24, 24),
+      new THREE.PlaneGeometry(36, 36),
       new THREE.MeshStandardMaterial({
         map: deckTex,
         bumpMap: deckTex,
@@ -880,19 +851,19 @@
     // Tall hall so the pulled-back phone camera stays inside the warehouse.
     const hallH = hallTop + 0.45;
     const hallCY = (hallTop - 0.45) / 2;
-    wall(backWallMat, 16, hallH, 0.18, 0, hallCY, -5.0);
-    wall(sideWallMat, 0.18, hallH, 22, -7.6, hallCY, 3.0);
-    wall(sideWallMat, 0.18, hallH, 22, 7.6, hallCY, 3.0);
+    wall(backWallMat, 28, hallH, 0.18, 0, hallCY, -8.9);
+    wall(sideWallMat, 0.18, hallH, 28, -13.3, hallCY, 4.0);
+    wall(sideWallMat, 0.18, hallH, 28, 13.3, hallCY, 4.0);
 
     // (removed horizontal wall rails/beams per Louis feedback)
 
     // Bright white ceiling panels
     const ceiling = new THREE.Mesh(
-      new THREE.PlaneGeometry(18, 26),
+      new THREE.PlaneGeometry(29, 29),
       new THREE.MeshStandardMaterial({ color: 0x0e1526, roughness: 0.95, side: THREE.FrontSide })
     );
     ceiling.rotation.x = Math.PI / 2;
-    ceiling.position.set(0, hallTop, 2.2);
+    ceiling.position.set(0, hallTop, 4.5);
     scene.add(ceiling);
 
     // ——— Ad panel placeholders (far + side walls — future paid ads) ———
@@ -935,14 +906,16 @@
       });
       return g;
     }
-    // Far wall row of ad spaces (lowered into camera-visible band above pool)
-    addAdPanel(2.5, 1.35, -4.0, 1.45, -4.86, 0, "green", "green");
-    addAdPanel(2.0, 1.45, -1.5, 1.5, -4.86, 0, "logo", "logo");
-    addAdPanel(2.7, 1.4, 1.2, 1.5, -4.86, 0, "black", "black");
-    addAdPanel(2.3, 1.35, 4.0, 1.45, -4.86, 0, "teal", "teal");
+    // Far wall row of ad spaces, moved up into the freed hall-sign space
+    // and enlarged ~1.35x (2026-10-25 per Louis). z follows the back
+    // wall, which moved out for the doubled pool.
+    addAdPanel(3.3, 1.8, -5.4, 2.3, -8.75, 0, "green", "green");
+    addAdPanel(2.7, 1.9, -1.9, 2.3, -8.75, 0, "logo", "logo");
+    addAdPanel(3.6, 1.9, 1.7, 2.3, -8.75, 0, "black", "black");
+    addAdPanel(3.1, 1.8, 5.3, 2.3, -8.75, 0, "teal", "teal");
     // Side wall ad strips
-    addAdPanel(2.1, 1.3, -7.45, 1.5, -1.8, Math.PI / 2, "side", "side_l");
-    addAdPanel(2.1, 1.3, 7.45, 1.5, -1.8, -Math.PI / 2, "side", "side_r");
+    addAdPanel(2.1, 1.3, -13.15, 1.5, -1.8, Math.PI / 2, "side", "side_l");
+    addAdPanel(2.1, 1.3, 13.15, 1.5, -1.8, -Math.PI / 2, "side", "side_r");
 
     // Small digital scoreboard above center ads
     const scoreBoard = new THREE.Mesh(
@@ -955,90 +928,27 @@
       })
     );
 
-    scoreBoard.position.set(4.7, 2.55, -4.84);
+    scoreBoard.position.set(4.7, 3.6, -8.73);
     scene.add(scoreBoard);
 
-    // Maroon / gold hall name, above the sponsor row. Not a paid slot.
-    function addHallSign() {
-      const c = document.createElement("canvas");
-      c.width = 768;
-      c.height = 200;
-      const ctx = c.getContext("2d");
-      ctx.fillStyle = Pal.hex(Pal.sign);
-      ctx.fillRect(0, 0, c.width, c.height);
-      ctx.strokeStyle = Pal.hex(Pal.signGold);
-      ctx.lineWidth = 12;
-      ctx.strokeRect(14, 14, c.width - 28, c.height - 28);
-      ctx.fillStyle = Pal.hex(Pal.signGold);
-      ctx.textAlign = "center";
-      ctx.font = "bold 72px sans-serif";
-      ctx.fillText("夜貓釣蝦場", c.width / 2, 112);
-      ctx.font = "26px sans-serif";
-      ctx.fillStyle = "#f6e7c0";
-      ctx.fillText("香港室內釣蝦 · 娛樂模擬", c.width / 2, 156);
-      const tex = new THREE.CanvasTexture(c);
-      if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
-      const g = new THREE.Group();
-      const frame = new THREE.Mesh(
-        new THREE.BoxGeometry(2.35, 1.05, 0.04),
-        new THREE.MeshStandardMaterial({ color: 0x4a1822, roughness: 0.55 })
-      );
-      const panel = new THREE.Mesh(
-        new THREE.BoxGeometry(2.2, 0.92, 0.05),
-        new THREE.MeshStandardMaterial({ map: tex, roughness: 0.5, metalness: 0.05 })
-      );
-      panel.position.z = 0.02;
-      g.add(frame);
-      g.add(panel);
-      // Above the sponsor row so the four ad panels stay readable.
-      g.position.set(0, 2.68, -4.82);
-      scene.add(g);
-    }
-    addHallSign();
+    // (Center hall name sign removed 2026-10-25 per Louis; the sponsor
+    // row moves up into the freed space.)
 
-    // Blue wall fans (ref photo)
-    function wallFan(x, y, z, rotY) {
-      const g = new THREE.Group();
-      const hub = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.08, 0.1, 0.08, 16),
-        new THREE.MeshStandardMaterial({ color: 0x2a6ab8, metalness: 0.4, roughness: 0.4 })
-      );
-      hub.rotation.x = Math.PI / 2;
-      g.add(hub);
-      const ring = new THREE.Mesh(
-        new THREE.TorusGeometry(0.28, 0.025, 8, 24),
-        new THREE.MeshStandardMaterial({ color: 0x3a7ad0, metalness: 0.35, roughness: 0.45 })
-      );
-      g.add(ring);
-      const bladeMat = new THREE.MeshStandardMaterial({ color: 0xd0d8e0, roughness: 0.5, metalness: 0.2 });
-      for (let i = 0; i < 3; i++) {
-        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.04, 0.08), bladeMat);
-        blade.position.x = 0.12;
-        const pivot = new THREE.Group();
-        pivot.rotation.z = (i / 3) * Math.PI * 2;
-        pivot.add(blade);
-        g.add(pivot);
-      }
-      g.position.set(x, y, z);
-      g.rotation.y = rotY || 0;
-      scene.add(g);
-    }
-    wallFan(-5.0, 2.85, -4.7, 0);
-    wallFan(5.0, 2.85, -4.7, 0);
-    wallFan(-7.45, 2.7, 0.5, Math.PI / 2);
-    wallFan(7.45, 2.7, 0.5, -Math.PI / 2);
+    // (Wall fans removed 2026-10-25 per Louis: the four circled wall
+    // items go, walls stay clean.)
 
     // ——— Main prawning tank ———
     // Water surface stays at WATER_Y (float / bite anchor). The coping sits
     // well above it so freeboard, inner wall, and rim thickness read as a tank.
     // Never put a solid lid over the water.
     const WATER_Y = 0.42;
-    // Pool x1.5 (Louis 2026-10-25: 都係唔夠大，試吓做大1.5倍).
+    // Pool x2 (Louis 2026-10-25: 池子仍然不夠大，試下放大兩倍 —
+    // world size doubles from 11.1x7.5 to 22.2x15, hall expands with it).
     // Everything below derives from innerW/innerD except the near-rim
-    // props, which shift +1.25 in z, and the side walls/ads/fans, which
+    // props, which shift +3.75 in z, and the hall walls/ads, which
     // move out to clear the wider pool.
-    const innerW = 11.1;
-    const innerD = 7.5;
+    const innerW = 22.2;
+    const innerD = 15.0;
     const wallThick = 0.56;
     const capT = 0.12;
     const freeboard = 0.46;
@@ -1234,7 +1144,7 @@
     waterVolume.renderOrder = 1;
     poolGroup.add(waterVolume);
 
-    const waterGeo = new THREE.PlaneGeometry(innerW - 0.2, innerD - 0.2, 80, 56);
+    const waterGeo = new THREE.PlaneGeometry(innerW - 0.2, innerD - 0.2, 140, 96);
     const waterBump = makeNoiseTexture(256, "#404040", "#6a6a6a");
     waterBump.wrapS = waterBump.wrapT = THREE.RepeatWrapping;
     waterBump.repeat.set(6, 4);
@@ -1342,12 +1252,13 @@
       poolGroup.add(bubbles);
       return bubbles;
     }
-    // 氣泡區 — distinct aeration columns (釣蝦場 style)
-    makeBubbleCluster(0.3, -1.65, 55);
-    makeBubbleCluster(-2.4, 1.05, 48);
-    makeBubbleCluster(2.55, 0.75, 48);
-    makeBubbleCluster(-0.9, -0.3, 40);
-    makeBubbleCluster(1.5, -1.05, 36);
+    // 氣泡區 — distinct aeration columns (釣蝦場 style), spread x2
+    // with the doubled pool
+    makeBubbleCluster(0.6, -3.3, 55);
+    makeBubbleCluster(-4.8, 2.1, 48);
+    makeBubbleCluster(5.1, 1.5, 48);
+    makeBubbleCluster(-1.8, -0.6, 40);
+    makeBubbleCluster(3.0, -2.1, 36);
 
     // ——— Taiwan 阿波 / 長標 / 短標 (神綱-style silhouette; no brand logos) ———
     function buildFloatMesh(style) {
@@ -1498,7 +1409,7 @@
 
     rodParts.rotation.z = Math.PI / 2.15;
     rodParts.rotation.y = -0.32;
-    rodParts.position.set(0.95, deckTop + 0.34, 4.15);
+    rodParts.position.set(0.95, deckTop + 0.34, 7.90);
     rodTip.add(rodParts);
     scene.add(rodTip);
 
@@ -1545,7 +1456,7 @@
     );
     restDot.position.set(0.12, 0.05, 0.04);
     rest.add(restDot);
-    rest.position.set(0.35, deckTop + 0.02, 3.98);
+    rest.position.set(0.35, deckTop + 0.02, 7.73);
     rest.scale.setScalar(1.45);
     rest.rotation.y = 0.08;
     scene.add(rest);
@@ -1736,23 +1647,23 @@
   }
 
   // Reference-venue palette (from Louis's Prawing-max screenshots, described
-  // in our own words, no copied art): blue small-grid wall tiles.
+  // in our own words, no copied art): blue wall tiles, kept deliberately
+  // plain (2026-10-25: Louis said the small grid looked too busy) —
+  // large tiles, grout close to the tile colour, minimal variation.
   function makeBlueGridTexture(size) {
     const c = document.createElement("canvas");
     c.width = c.height = size;
     const ctx = c.getContext("2d");
-    const div = 8;
+    const div = 4;
     const cell = size / div;
-    ctx.fillStyle = "#b9d2ec";
+    ctx.fillStyle = "#8fb6de";
     ctx.fillRect(0, 0, size, size);
     for (let y = 0; y < div; y++) {
       for (let x = 0; x < div; x++) {
-        const v = Math.floor(Math.random() * 14) - 7;
-        const r = 102 + v, g = 158 + v, b = 216 + v;
+        const v = Math.floor(Math.random() * 8) - 4;
+        const r = 111 + v, g = 164 + v, b = 220 + v;
         ctx.fillStyle = `rgb(${r},${g},${b})`;
         ctx.fillRect(x * cell + 1.5, y * cell + 1.5, cell - 3, cell - 3);
-        ctx.fillStyle = "rgba(255,255,255,0.12)";
-        ctx.fillRect(x * cell + 1.5, y * cell + 1.5, cell - 3, 2);
       }
     }
     const tex = new THREE.CanvasTexture(c);
