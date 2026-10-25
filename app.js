@@ -1008,22 +1008,22 @@
 
     // Marble cap from the recessed-pool pass, now grey marble per Louis.
     // Outer walls are raised tiles. Water is cover blue (see below).
-    // Pool blue changed 2026-10-25 per Louis to the cover art's blue
-    // (sampled from covers/cover-au-daiwa-brush.jpg water band):
-    // was teal (0e948e / 0a5e5c / 1cbfb6), now royal blue.
-    const seaTeal = 0x1e4f9e;
-    const seaDeepTeal = 0x102d68;
-    const seaSurfaceTeal = 0x2f66c4;
+    // Pool colour changed 2026-10-25 per Louis to lake green
+    // (湖水綠): was cover royal blue (1e4f9e / 102d68 / 2f66c4),
+    // before that teal. Clearer too (see opacities below).
+    const seaTeal = 0x3a8f74;
+    const seaDeepTeal = 0x276b56;
+    const seaSurfaceTeal = 0x4fb393;
     const capMat = new THREE.MeshStandardMaterial({
       map: marbleTex,
       bumpMap: marbleBump || null,
       bumpScale: 0.07,
-      color: 0xe8e8e8,
+      color: 0xd0d0d0,
       roughness: 0.38,
       metalness: 0.04,
     });
     const sideMat = new THREE.MeshStandardMaterial({
-      color: 0x8a8a86,
+      color: 0x767672,
       roughness: 0.92,
       metalness: 0.02,
     });
@@ -1031,7 +1031,7 @@
       map: marbleTex,
       bumpMap: marbleBump || null,
       bumpScale: 0.08,
-      color: 0xd8d8d8,
+      color: 0xb8b8b8,
       roughness: 0.68,
       metalness: 0.03,
     });
@@ -1041,7 +1041,7 @@
       metalness: 0.05,
     });
     const lipShadowMat = new THREE.MeshStandardMaterial({
-      color: 0x8a8a86,
+      color: 0x767672,
       roughness: 0.9,
       metalness: 0.02,
     });
@@ -1066,8 +1066,9 @@
     function addRaisedTiles() {
       const gap = 0.016;
       const proud = 0.022;
-      // Marble grey 2026-10-25 per Louis (企身磚同樣雲石灰色).
-      const colors = [0xbdbdb9, 0xa9a9a5, 0xc9c9c5, 0xb2b2ae];
+      // Marble grey 2026-10-25 per Louis (企身磚同樣雲石灰色),
+      // darkened a touch the same day (雲石灰在深色一啲).
+      const colors = [0x9d9d99, 0x8f8f8b, 0xa9a9a5, 0x92928e];
       const tileRough = [0.5, 0.58, 0.46, 0.62];
       const tileBump = makeNoiseTexture(128, "#808080", "#a0a0a0");
       const mats = colors.map((color, i) => new THREE.MeshStandardMaterial({
@@ -1078,7 +1079,7 @@
         metalness: 0.05,
       }));
       const bevelMat = new THREE.MeshStandardMaterial({
-        color: 0xdcdcd8,
+        color: 0xc2c2be,
         roughness: 0.3,
         metalness: 0.08,
       });
@@ -1153,7 +1154,7 @@
     box(innerMat, fbT, fbH, innerD - 0.16, -(halfW - 0.035), fbCY, 0, true);
     box(innerMat, fbT, fbH, innerD - 0.16, halfW - 0.035, fbCY, 0, true);
 
-    const floorTile = makeTileTexture(128, "#2f66c4", "#1e4f9e", 8);
+    const floorTile = makeTileTexture(128, "#4fb393", "#3a8f74", 8);
     floorTile.wrapS = floorTile.wrapT = THREE.RepeatWrapping;
     floorTile.repeat.set(5, 3);
     const tankFloor = new THREE.Mesh(
@@ -1177,7 +1178,7 @@
       roughness: 0.28,
       metalness: 0.02,
       transparent: true,
-      opacity: 0.82,
+      opacity: 0.74,
       side: THREE.DoubleSide,
       depthWrite: false,
       emissive: seaDeepTeal,
@@ -1198,11 +1199,11 @@
     const surfaceMat = new THREE.MeshStandardMaterial({
       color: seaSurfaceTeal,
       bumpMap: waterBump,
-      bumpScale: 0.04,
+      bumpScale: 0.08,
       roughness: 0.06,
       metalness: 0.05,
       transparent: true,
-      opacity: 0.78,
+      opacity: 0.7,
       side: THREE.DoubleSide,
       depthWrite: false,
       emissive: seaTeal,
@@ -1216,7 +1217,7 @@
 
     // Dark contact where the water meets the wall — not a bright surface rail.
     const edgeMat = new THREE.MeshStandardMaterial({
-      color: 0x0a2a5e,
+      color: 0x1d5c48,
       roughness: 0.5,
       metalness: 0.02,
       transparent: true,
@@ -1286,7 +1287,7 @@
         bubbleGeo,
         new THREE.PointsMaterial({
           color: 0xf2faff,
-          size: 0.1,
+          size: 0.15,
           transparent: true,
           opacity: 0.92,
           depthWrite: false,
@@ -1566,7 +1567,7 @@
     const bumpCanvas = document.createElement("canvas");
     bumpCanvas.width = bumpCanvas.height = size;
     const bx = bumpCanvas.getContext("2d");
-    ctx.fillStyle = "#c9c9c6";
+    ctx.fillStyle = "#a8a8a4";
     ctx.fillRect(0, 0, size, size);
     bx.fillStyle = "rgb(168,168,168)";
     bx.fillRect(0, 0, size, size);
@@ -1590,17 +1591,18 @@
       ctx.stroke();
       bx.stroke();
     }
-    // Grey marble 2026-10-25 per Louis (池枱面用雲石紋灰色): neutral
-    // grey base with grey veins, broader veins so the slab reads up close.
+    // Grey marble 2026-10-25 per Louis (池枱面用雲石紋灰色), darkened
+    // a touch the same day (雲石灰在深色一啲): neutral grey base with
+    // grey veins, broader veins so the slab reads up close.
     for (let i = 0; i < 8; i++) {
       const a = 0.2 + Math.random() * 0.18;
-      vein(7 + Math.random() * 9, `rgba(88,88,90,${a})`, "rgba(70,70,70,0.85)");
+      vein(7 + Math.random() * 9, `rgba(72,72,74,${a})`, "rgba(70,70,70,0.85)");
     }
     for (let i = 0; i < 16; i++) {
       const a = 0.22 + Math.random() * 0.2;
       vein(
         1.5 + Math.random() * 3.5,
-        `rgba(${80 + Math.random() * 30},${80 + Math.random() * 30},${82 + Math.random() * 30},${a})`,
+        `rgba(${60 + Math.random() * 30},${60 + Math.random() * 30},${62 + Math.random() * 30},${a})`,
         "rgba(55,55,55,0.7)"
       );
     }
@@ -1998,11 +2000,12 @@
       for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i);
         const y = pos.getY(i);
-        // Ripple amplitude raised 2026-10-25 per Louis (水波紋明顯啲).
+        // Ripple amplitude raised again 2026-10-25 per Louis (佢話
+        // 睇唔到水波紋): roughly x1.8 over the previous round.
         const z =
-          Math.sin(x * 2.1 + t * 1.6) * 0.05 +
-          Math.cos(y * 2.4 + t * 1.3) * 0.036 +
-          Math.sin((x + y) * 1.1 + t * 0.7) * 0.02;
+          Math.sin(x * 2.1 + t * 1.6) * 0.09 +
+          Math.cos(y * 2.4 + t * 1.3) * 0.06 +
+          Math.sin((x + y) * 1.1 + t * 0.7) * 0.035;
         pos.setZ(i, z);
       }
       pos.needsUpdate = true;
