@@ -95,7 +95,8 @@ html, body {
   height: 100% !important;
 }
 
-/* ——— Cover splash (AU Daiwa brush poster) ——— */
+/* ——— Cover splash (neon night-market poster; the art already carries
+   a 開始遊戲 button, so the invisible start button sits over it) ——— */
 .splash {
   position: absolute;
   inset: 0;
@@ -123,10 +124,10 @@ html, body {
 /* Hit target sits on the painted 「開始遊戲」 pill (≈26–74% × 70–86% of the 3:4 art). */
 .splash-start {
   position: absolute;
-  left: 26%;
-  top: 70%;
-  width: 48%;
-  height: 16%;
+  left: 12%;
+  top: 82%;
+  width: 76%;
+  height: 14%;
   padding: 0;
   border: 0;
   border-radius: 999px;
