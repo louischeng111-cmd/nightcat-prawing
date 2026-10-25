@@ -906,32 +906,21 @@
       });
       return g;
     }
-    // Far wall row: three panels, raised and centered (2026-10-25 per
-    // Louis: 正面三張放高一些置中; the logo slot drops out, leaving
-    // green / black / teal). z follows the back wall.
-    addAdPanel(3.3, 1.8, -4.2, 3.1, -8.75, 0, "green", "green");
-    addAdPanel(3.6, 1.9, 0, 3.1, -8.75, 0, "black", "black");
-    addAdPanel(3.1, 1.8, 4.2, 3.1, -8.75, 0, "teal", "teal");
-    // Side wall ad strips: two per side (2026-10-25 per Louis: 側面各兩張),
-    // moved out to the widened side walls.
-    addAdPanel(2.1, 1.3, -18.75, 1.5, -4.0, Math.PI / 2, "side", "side_l");
-    addAdPanel(2.1, 1.3, -18.75, 1.5, 2.0, Math.PI / 2, "side", "side_l2");
-    addAdPanel(2.1, 1.3, 18.75, 1.5, -4.0, -Math.PI / 2, "side", "side_r");
-    addAdPanel(2.1, 1.3, 18.75, 1.5, 2.0, -Math.PI / 2, "side", "side_r2");
+    // Five ad panels, all one uniform size (4.0 x 2.0) and one height,
+    // neatly centered (2026-10-25 per Louis: 總數五張、比例統一、
+    // 整齊置中; red-circled zones in his screenshots). Front row of
+    // three, evenly spaced and centered; one per side wall, centered
+    // on the wall. z follows the back wall.
+    addAdPanel(4.0, 2.0, -8, 3.1, -8.75, 0, "green", "green");
+    addAdPanel(4.0, 2.0, 0, 3.1, -8.75, 0, "black", "black");
+    addAdPanel(4.0, 2.0, 8, 3.1, -8.75, 0, "teal", "teal");
+    // Side walls: one panel each (Louis: 左右不要兩塊，一塊就可以).
+    addAdPanel(4.0, 2.0, -18.75, 3.1, 4.0, Math.PI / 2, "side", "side_l");
+    addAdPanel(4.0, 2.0, 18.75, 3.1, 4.0, -Math.PI / 2, "side", "side_r");
 
-    // Small digital scoreboard above center ads
-    const scoreBoard = new THREE.Mesh(
-      new THREE.BoxGeometry(0.55, 0.28, 0.05),
-      new THREE.MeshStandardMaterial({
-        color: Pal.ink,
-        emissive: 0x1c5f96,
-        emissiveIntensity: 0.12,
-        roughness: 0.5,
-      })
-    );
-
-    scoreBoard.position.set(0, 4.6, -8.73);
-    scene.add(scoreBoard);
+    // (Small digital scoreboard removed 2026-10-25 per Louis — the
+    // yellow-circled box above the center panel; HUD already shows
+    // the same stats.)
 
     // (Center hall name sign removed 2026-10-25 per Louis; the sponsor
     // row moves up into the freed space.)
