@@ -932,12 +932,19 @@
     // The canvas tiles exactly (width = a whole number of text units)
     // so offset scrolling in animate() wraps seamlessly. Unlit
     // material so it glows like an LED board in the dark hall.
+    // 2026-10-25 per Louis (放高少少、闊度多翻少少、字體正方形):
+    // board 32 x 1.2 -> 34 x 1.5, raised to y 9.0, and the canvas
+    // aspect now matches the board aspect — previously the board
+    // (26.7:1) stretched a 11.6:1 canvas, so glyphs looked 2.3x wide.
+    const tickerPlaneW = 34;
+    const tickerPlaneH = 1.5;
     const tickerCanvas = document.createElement("canvas");
     const tickerMeasure = tickerCanvas.getContext("2d");
     tickerMeasure.font = "bold 90px sans-serif";
     const tickerUnit = "老闆冇蝦 ★ ";
     const tickerUnitW = tickerMeasure.measureText(tickerUnit).width;
-    const tickerReps = Math.max(2, Math.ceil(1024 / tickerUnitW));
+    const tickerTargetW = (tickerPlaneW / tickerPlaneH) * 128;
+    const tickerReps = Math.max(2, Math.round(tickerTargetW / tickerUnitW));
     tickerCanvas.width = Math.ceil(tickerUnitW * tickerReps);
     tickerCanvas.height = 128;
     const tickerCtx = tickerCanvas.getContext("2d");
@@ -954,10 +961,10 @@
     tickerTex.wrapS = THREE.RepeatWrapping;
     game.tickerTex = tickerTex;
     const ticker = new THREE.Mesh(
-      new THREE.PlaneGeometry(32, 1.2),
+      new THREE.PlaneGeometry(tickerPlaneW, tickerPlaneH),
       new THREE.MeshBasicMaterial({ map: tickerTex })
     );
-    ticker.position.set(0, 8.6, -8.7);
+    ticker.position.set(0, 9.0, -8.7);
     scene.add(ticker);
 
     // (Small digital scoreboard removed 2026-10-25 per Louis — the
