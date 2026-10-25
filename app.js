@@ -556,7 +556,7 @@
     lidPivot.add(logoPlate);
     lidPivot.rotation.x = -0.42;
     boxG.add(lidPivot);
-    boxG.position.set(-1.15, tableY, 2.83);
+    boxG.position.set(-1.15, tableY, 4.08);
     boxG.rotation.y = 0.22;
     boxG.scale.setScalar(1.7);
     tackle.add(boxG);
@@ -589,7 +589,7 @@
     butt.rotation.z = Math.PI / 2;
     butt.position.x = xCursor - 0.02;
     spare.add(butt);
-    spare.position.set(1.85, tableY + 0.02, 2.75);
+    spare.position.set(1.85, tableY + 0.02, 4.00);
     spare.rotation.y = -0.06;
     tackle.add(spare);
 
@@ -603,17 +603,16 @@
     if (!camera || !game.camLook) return;
     const aspect = camera.aspect > 0 ? camera.aspect : 1;
     if (aspect < 0.9) {
-      // Framing fix: the bigger pool (7.4 x 5.0) must LOOK bigger on
-      // screen, so the camera sits closer instead of pulling back to fit
-      // the whole room. Far ad row is a pan-up away, not in the default
-      // frame. (Earlier realism-v1 pulled back and cancelled the enlargement.)
+      // Straight viewpoint (Louis's Prawing-max reference): low camera
+      // looking near-horizontally across the pool, not a high overhead
+      // view. Far ad row is a pan-up away, not in the default frame.
       camera.fov = 52;
-      camera.position.set(0.05, 4.4, 5.1);
-      game.camLook.set(0, 0.7, -0.3);
+      camera.position.set(0.05, 3.2, 6.4);
+      game.camLook.set(0, 1.0, -0.3);
     } else {
       camera.fov = 48;
-      camera.position.set(0.12, 5.6, 8.3);
-      game.camLook.set(0, 0.42, -0.45);
+      camera.position.set(0.12, 3.1, 8.6);
+      game.camLook.set(0, 0.9, -0.6);
     }
     game.camHome.copy(camera.position);
     camera.updateProjectionMatrix();
@@ -722,8 +721,9 @@
     }
     const wrap = $("canvas-wrap");
     scene = new THREE.Scene();
-    // Bright warehouse (Louis ref): cream walls, not the mint hall.
-    const hallWall = 0xe7e2da;
+    // Reference-venue hall (Louis's Prawing-max screenshots): dark navy
+    // ceiling/background with blue grid walls, not the old cream hall.
+    const hallWall = 0x0e1526;
     scene.background = new THREE.Color(hallWall);
     scene.fog = new THREE.Fog(hallWall, 42, 92);
 
@@ -764,10 +764,10 @@
     key.shadow.mapSize.set(2048, 2048);
     key.shadow.camera.near = 1;
     key.shadow.camera.far = 26;
-    key.shadow.camera.left = -10;
-    key.shadow.camera.right = 10;
-    key.shadow.camera.top = 10;
-    key.shadow.camera.bottom = -10;
+    key.shadow.camera.left = -13;
+    key.shadow.camera.right = 13;
+    key.shadow.camera.top = 13;
+    key.shadow.camera.bottom = -13;
     key.shadow.bias = -0.0006;
     key.shadow.normalBias = 0.03;
     scene.add(key);
@@ -775,7 +775,8 @@
     fill.position.set(-3, 5, -2);
     scene.add(fill);
 
-    // Recessed square LED panels on ceiling (many bright whites)
+    // Long white ceiling strip lights (reference venue: long bars on a
+    // dark ceiling, not a grid of small square panels).
     const ledPanelMat = new THREE.MeshStandardMaterial({
       color: 0xffffff,
       emissive: 0xfffff0,
@@ -784,16 +785,14 @@
     });
     const ledFrameMat = new THREE.MeshStandardMaterial({ color: 0xc8ccd2, roughness: 0.7 });
     const ledPositions = [];
-    for (let xi = -2; xi <= 2; xi++) {
-      for (let zi = -2; zi <= 1; zi++) {
-        ledPositions.push([xi * 2.2, hallTop - 0.18, zi * 2.0 + 0.4]);
-      }
+    for (const z of [-3.5, -0.5, 2.5, 5.5]) {
+      ledPositions.push([0, hallTop - 0.18, z]);
     }
     ledPositions.forEach(([x, y, z]) => {
-      const frame = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.04, 0.95), ledFrameMat);
+      const frame = new THREE.Mesh(new THREE.BoxGeometry(13, 0.05, 0.7), ledFrameMat);
       frame.position.set(x, y, z);
       scene.add(frame);
-      const panel = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.03, 0.78), ledPanelMat);
+      const panel = new THREE.Mesh(new THREE.BoxGeometry(12.6, 0.04, 0.5), ledPanelMat);
       panel.position.set(x, y - 0.02, z);
       scene.add(panel);
       const pl = new THREE.PointLight(0xfffaf4, 0.2, 10, 2);
@@ -821,19 +820,25 @@
       marbleBump.wrapS = marbleBump.wrapT = THREE.RepeatWrapping;
       marbleBump.repeat.copy(marbleTex.repeat);
     }
-    const wallMetalTex = makeCorrugatedTexture(256);
-    wallMetalTex.wrapS = wallMetalTex.wrapT = THREE.RepeatWrapping;
-    wallMetalTex.repeat.set(8, 14);
+    const blueGridTexBack = makeBlueGridTexture(256);
+    blueGridTexBack.wrapS = blueGridTexBack.wrapT = THREE.RepeatWrapping;
+    blueGridTexBack.repeat.set(6, 5);
+    const blueGridTexSide = makeBlueGridTexture(256);
+    blueGridTexSide.wrapS = blueGridTexSide.wrapT = THREE.RepeatWrapping;
+    blueGridTexSide.repeat.set(8, 5);
+    const deckTex = makeRedBrownFloorTexture(256);
+    deckTex.wrapS = deckTex.wrapT = THREE.RepeatWrapping;
+    deckTex.repeat.set(6, 6);
 
     // Floor — light grey squares, same hall as the reference photo.
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(24, 24),
       new THREE.MeshStandardMaterial({
-        map: floorTileTex,
-        bumpMap: floorTileTex,
+        map: deckTex,
+        bumpMap: deckTex,
         bumpScale: 0.02,
         color: 0xffffff,
-        roughness: 0.72,
+        roughness: 0.8,
         metalness: 0.02,
       })
     );
@@ -844,9 +849,9 @@
 
     // Grey industrial walls (corrugated metal look)
     const backWallMat = new THREE.MeshStandardMaterial({
-      map: wallMetalTex,
+      map: blueGridTexBack,
       color: 0xffffff,
-      roughness: 0.9,
+      roughness: 0.85,
       metalness: 0.0,
       emissive: hallWall,
       emissiveIntensity: 0.12,
@@ -855,7 +860,8 @@
     sideWallBump.wrapS = sideWallBump.wrapT = THREE.RepeatWrapping;
     sideWallBump.repeat.set(8, 4);
     const sideWallMat = new THREE.MeshStandardMaterial({
-      color: hallWall,
+      map: blueGridTexSide,
+      color: 0xffffff,
       bumpMap: sideWallBump,
       bumpScale: 0.02,
       roughness: 0.85,
@@ -875,15 +881,15 @@
     const hallH = hallTop + 0.45;
     const hallCY = (hallTop - 0.45) / 2;
     wall(backWallMat, 16, hallH, 0.18, 0, hallCY, -5.0);
-    wall(sideWallMat, 0.18, hallH, 22, -6.2, hallCY, 3.0);
-    wall(sideWallMat, 0.18, hallH, 22, 6.2, hallCY, 3.0);
+    wall(sideWallMat, 0.18, hallH, 22, -7.6, hallCY, 3.0);
+    wall(sideWallMat, 0.18, hallH, 22, 7.6, hallCY, 3.0);
 
     // (removed horizontal wall rails/beams per Louis feedback)
 
     // Bright white ceiling panels
     const ceiling = new THREE.Mesh(
       new THREE.PlaneGeometry(18, 26),
-      new THREE.MeshStandardMaterial({ color: 0xf4f1eb, roughness: 0.92, side: THREE.FrontSide })
+      new THREE.MeshStandardMaterial({ color: 0x0e1526, roughness: 0.95, side: THREE.FrontSide })
     );
     ceiling.rotation.x = Math.PI / 2;
     ceiling.position.set(0, hallTop, 2.2);
@@ -935,8 +941,8 @@
     addAdPanel(2.7, 1.4, 1.2, 1.5, -4.86, 0, "black", "black");
     addAdPanel(2.3, 1.35, 4.0, 1.45, -4.86, 0, "teal", "teal");
     // Side wall ad strips
-    addAdPanel(2.1, 1.3, -6.05, 1.5, -1.8, Math.PI / 2, "side", "side_l");
-    addAdPanel(2.1, 1.3, 6.05, 1.5, -1.8, -Math.PI / 2, "side", "side_r");
+    addAdPanel(2.1, 1.3, -7.45, 1.5, -1.8, Math.PI / 2, "side", "side_l");
+    addAdPanel(2.1, 1.3, 7.45, 1.5, -1.8, -Math.PI / 2, "side", "side_r");
 
     // Small digital scoreboard above center ads
     const scoreBoard = new THREE.Mesh(
@@ -1019,18 +1025,20 @@
     }
     wallFan(-5.0, 2.85, -4.7, 0);
     wallFan(5.0, 2.85, -4.7, 0);
-    wallFan(-6.0, 2.7, 0.5, Math.PI / 2);
-    wallFan(6.0, 2.7, 0.5, -Math.PI / 2);
+    wallFan(-7.45, 2.7, 0.5, Math.PI / 2);
+    wallFan(7.45, 2.7, 0.5, -Math.PI / 2);
 
     // ——— Main prawning tank ———
     // Water surface stays at WATER_Y (float / bite anchor). The coping sits
     // well above it so freeboard, inner wall, and rim thickness read as a tank.
     // Never put a solid lid over the water.
     const WATER_Y = 0.42;
-    // Bigger pool (Louis: 池睇落更加大). Everything below derives from
-    // innerW/innerD except the near-rim props, which shift +0.55 in z.
-    const innerW = 7.4;
-    const innerD = 5.0;
+    // Pool x1.5 (Louis 2026-10-25: 都係唔夠大，試吓做大1.5倍).
+    // Everything below derives from innerW/innerD except the near-rim
+    // props, which shift +1.25 in z, and the side walls/ads/fans, which
+    // move out to clear the wider pool.
+    const innerW = 11.1;
+    const innerD = 7.5;
     const wallThick = 0.56;
     const capT = 0.12;
     const freeboard = 0.46;
@@ -1226,7 +1234,7 @@
     waterVolume.renderOrder = 1;
     poolGroup.add(waterVolume);
 
-    const waterGeo = new THREE.PlaneGeometry(innerW - 0.2, innerD - 0.2, 64, 44);
+    const waterGeo = new THREE.PlaneGeometry(innerW - 0.2, innerD - 0.2, 80, 56);
     const waterBump = makeNoiseTexture(256, "#404040", "#6a6a6a");
     waterBump.wrapS = waterBump.wrapT = THREE.RepeatWrapping;
     waterBump.repeat.set(6, 4);
@@ -1335,11 +1343,11 @@
       return bubbles;
     }
     // 氣泡區 — distinct aeration columns (釣蝦場 style)
-    makeBubbleCluster(0.2, -1.1, 55);
-    makeBubbleCluster(-1.6, 0.7, 48);
-    makeBubbleCluster(1.7, 0.5, 48);
-    makeBubbleCluster(-0.6, -0.2, 40);
-    makeBubbleCluster(1.0, -0.7, 36);
+    makeBubbleCluster(0.3, -1.65, 55);
+    makeBubbleCluster(-2.4, 1.05, 48);
+    makeBubbleCluster(2.55, 0.75, 48);
+    makeBubbleCluster(-0.9, -0.3, 40);
+    makeBubbleCluster(1.5, -1.05, 36);
 
     // ——— Taiwan 阿波 / 長標 / 短標 (神綱-style silhouette; no brand logos) ———
     function buildFloatMesh(style) {
@@ -1490,7 +1498,7 @@
 
     rodParts.rotation.z = Math.PI / 2.15;
     rodParts.rotation.y = -0.32;
-    rodParts.position.set(0.95, deckTop + 0.34, 2.90);
+    rodParts.position.set(0.95, deckTop + 0.34, 4.15);
     rodTip.add(rodParts);
     scene.add(rodTip);
 
@@ -1537,7 +1545,7 @@
     );
     restDot.position.set(0.12, 0.05, 0.04);
     rest.add(restDot);
-    rest.position.set(0.35, deckTop + 0.02, 2.73);
+    rest.position.set(0.35, deckTop + 0.02, 3.98);
     rest.scale.setScalar(1.45);
     rest.rotation.y = 0.08;
     scene.add(rest);
@@ -1720,6 +1728,57 @@
         ctx.fillRect(px, py, tw, th);
         ctx.fillStyle = dark ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.14)";
         ctx.fillRect(px, py, tw, Math.max(2, grout));
+      }
+    }
+    const tex = new THREE.CanvasTexture(c);
+    if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }
+
+  // Reference-venue palette (from Louis's Prawing-max screenshots, described
+  // in our own words, no copied art): blue small-grid wall tiles.
+  function makeBlueGridTexture(size) {
+    const c = document.createElement("canvas");
+    c.width = c.height = size;
+    const ctx = c.getContext("2d");
+    const div = 8;
+    const cell = size / div;
+    ctx.fillStyle = "#b9d2ec";
+    ctx.fillRect(0, 0, size, size);
+    for (let y = 0; y < div; y++) {
+      for (let x = 0; x < div; x++) {
+        const v = Math.floor(Math.random() * 14) - 7;
+        const r = 102 + v, g = 158 + v, b = 216 + v;
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        ctx.fillRect(x * cell + 1.5, y * cell + 1.5, cell - 3, cell - 3);
+        ctx.fillStyle = "rgba(255,255,255,0.12)";
+        ctx.fillRect(x * cell + 1.5, y * cell + 1.5, cell - 3, 2);
+      }
+    }
+    const tex = new THREE.CanvasTexture(c);
+    if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }
+
+  // Reference-venue deck: dark red-brown floor tiles.
+  function makeRedBrownFloorTexture(size) {
+    const c = document.createElement("canvas");
+    c.width = c.height = size;
+    const ctx = c.getContext("2d");
+    const div = 4;
+    const cell = size / div;
+    const grout = Math.max(4, Math.round(size * 0.018));
+    ctx.fillStyle = "#5e3227";
+    ctx.fillRect(0, 0, size, size);
+    for (let y = 0; y < div; y++) {
+      for (let x = 0; x < div; x++) {
+        const dark = (x + y) % 2 === 0;
+        const base = dark ? 122 : 146;
+        const shade = base + Math.floor(Math.random() * 10) - 4;
+        ctx.fillStyle = `rgb(${shade},${Math.round(shade * 0.55)},${Math.round(shade * 0.45)})`;
+        ctx.fillRect(x * cell + grout, y * cell + grout, cell - grout * 2, cell - grout * 2);
+        ctx.fillStyle = dark ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)";
+        ctx.fillRect(x * cell + grout, y * cell + grout, cell - grout * 2, Math.max(2, grout));
       }
     }
     const tex = new THREE.CanvasTexture(c);
