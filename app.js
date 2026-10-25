@@ -577,12 +577,13 @@
       // looking near-horizontally across the pool, not a high overhead
       // view. Raised a touch 2026-10-25 (Louis: 視覺上高番DD). Pulled
       // back for the doubled 22.2x15 pool so the near rim stays in frame.
+      // Stepped back one more step 2026-10-25 (Louis: 個人退後一步).
       camera.fov = 52;
-      camera.position.set(0.05, 4.4, 10.2);
+      camera.position.set(0.05, 4.4, 10.9);
       game.camLook.set(0, 1.3, -0.5);
     } else {
       camera.fov = 48;
-      camera.position.set(0.12, 4.2, 12.6);
+      camera.position.set(0.12, 4.2, 13.3);
       game.camLook.set(0, 1.2, -1.0);
     }
     game.camHome.copy(camera.position);
