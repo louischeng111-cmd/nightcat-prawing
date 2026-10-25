@@ -1734,11 +1734,13 @@
       ctx.lineWidth = 8;
       ctx.strokeRect(10, 10, w - 20, h - 20);
       ctx.fillStyle = creative.accent || "#fff";
-      ctx.font = "bold 36px sans-serif";
+      // Enlarged 2026-10-25 for the house ad designs (readable from
+      // across the hall): title 36 -> 44, subtitle 22 -> 24.
+      ctx.font = "bold 44px sans-serif";
       ctx.textAlign = "left";
       ctx.fillText(creative.title || "SPONSOR", 36, 64);
       if (creative.subtitle) {
-        ctx.font = "22px sans-serif";
+        ctx.font = "24px sans-serif";
         ctx.fillStyle = "rgba(255,255,255,0.8)";
         if ((creative.bg || "").toLowerCase().indexOf("f") === 1 || (creative.bg || "").length > 5 && parseInt((creative.bg || "#000").slice(1, 3), 16) > 180) {
           ctx.fillStyle = "rgba(0,0,0,0.55)";
@@ -1746,7 +1748,7 @@
         ctx.fillText(creative.subtitle, 36, 100);
       }
       if (creative.lines && creative.lines.length) {
-        ctx.font = "22px sans-serif";
+        ctx.font = "26px sans-serif";
         ctx.fillStyle = creative.accent || "#eee";
         creative.lines.forEach((line, i) => ctx.fillText(line, 40, 130 + i * 40));
       }
