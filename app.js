@@ -916,14 +916,49 @@
     // 18.5 clear the side walls (inner faces 18.81). All five raised
     // together, then raised a touch more (Louis: 按剛才升高的比例
     // 再高些少) from y 4.2 to y 4.7, same height.
+    // 2026-10-25 per Louis (放偏中間一些): the two outer front
+    // panels move 1.0 toward the middle, centers -12 / 12, gaps 1.0.
     // z follows the back wall.
-    addAdPanel(11.0, 5.5, -13, 4.7, -8.75, 0, "green", "green");
+    addAdPanel(11.0, 5.5, -12, 4.7, -8.75, 0, "green", "green");
     addAdPanel(11.0, 5.5, 0, 4.7, -8.75, 0, "black", "black");
-    addAdPanel(11.0, 5.5, 13, 4.7, -8.75, 0, "teal", "teal");
+    addAdPanel(11.0, 5.5, 12, 4.7, -8.75, 0, "teal", "teal");
     // Side walls: one panel each, size unchanged (the reference size
     // the front row now matches), raised to the same height.
     addAdPanel(8.0, 4.0, -18.75, 4.7, 4.0, Math.PI / 2, "side", "side_l");
     addAdPanel(8.0, 4.0, 18.75, 4.7, 4.0, -Math.PI / 2, "side", "side_r");
+
+    // Scrolling LED ticker above the front ad row (2026-10-25 per
+    // Louis: the long box he drew above the panels, text 老闆冇蝦).
+    // The canvas tiles exactly (width = a whole number of text units)
+    // so offset scrolling in animate() wraps seamlessly. Unlit
+    // material so it glows like an LED board in the dark hall.
+    const tickerCanvas = document.createElement("canvas");
+    const tickerMeasure = tickerCanvas.getContext("2d");
+    tickerMeasure.font = "bold 90px sans-serif";
+    const tickerUnit = "老闆冇蝦 ★ ";
+    const tickerUnitW = tickerMeasure.measureText(tickerUnit).width;
+    const tickerReps = Math.max(2, Math.ceil(1024 / tickerUnitW));
+    tickerCanvas.width = Math.ceil(tickerUnitW * tickerReps);
+    tickerCanvas.height = 128;
+    const tickerCtx = tickerCanvas.getContext("2d");
+    tickerCtx.fillStyle = "#0a0505";
+    tickerCtx.fillRect(0, 0, tickerCanvas.width, tickerCanvas.height);
+    tickerCtx.font = "bold 90px sans-serif";
+    tickerCtx.fillStyle = "#ff2a1a";
+    tickerCtx.textBaseline = "middle";
+    for (let i = 0; i < tickerReps; i++) {
+      tickerCtx.fillText(tickerUnit, i * tickerUnitW, tickerCanvas.height / 2);
+    }
+    const tickerTex = new THREE.CanvasTexture(tickerCanvas);
+    if (THREE.SRGBColorSpace) tickerTex.colorSpace = THREE.SRGBColorSpace;
+    tickerTex.wrapS = THREE.RepeatWrapping;
+    game.tickerTex = tickerTex;
+    const ticker = new THREE.Mesh(
+      new THREE.PlaneGeometry(32, 1.2),
+      new THREE.MeshBasicMaterial({ map: tickerTex })
+    );
+    ticker.position.set(0, 8.6, -8.7);
+    scene.add(ticker);
 
     // (Small digital scoreboard removed 2026-10-25 per Louis — the
     // yellow-circled box above the center panel; HUD already shows
@@ -1954,6 +1989,10 @@
       pos.needsUpdate = true;
       waterMesh.geometry.computeVertexNormals();
     }
+    // Scrolling LED ticker above the ad row (right-to-left; a full
+    // canvas width drifts past every 20 s).
+    if (game.tickerTex) game.tickerTex.offset.x = (t * 0.05) % 1;
+
     // Rising bubbles (all aerator clusters)
     if (poolGroup) {
       poolGroup.traverse((obj) => {
