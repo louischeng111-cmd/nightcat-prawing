@@ -556,7 +556,7 @@
     lidPivot.add(logoPlate);
     lidPivot.rotation.x = -0.42;
     boxG.add(lidPivot);
-    boxG.position.set(-1.15, tableY, 2.83);
+    boxG.position.set(-1.15, tableY, 4.08);
     boxG.rotation.y = 0.22;
     boxG.scale.setScalar(1.7);
     tackle.add(boxG);
@@ -589,7 +589,7 @@
     butt.rotation.z = Math.PI / 2;
     butt.position.x = xCursor - 0.02;
     spare.add(butt);
-    spare.position.set(1.85, tableY + 0.02, 2.75);
+    spare.position.set(1.85, tableY + 0.02, 4.00);
     spare.rotation.y = -0.06;
     tackle.add(spare);
 
@@ -764,10 +764,10 @@
     key.shadow.mapSize.set(2048, 2048);
     key.shadow.camera.near = 1;
     key.shadow.camera.far = 26;
-    key.shadow.camera.left = -10;
-    key.shadow.camera.right = 10;
-    key.shadow.camera.top = 10;
-    key.shadow.camera.bottom = -10;
+    key.shadow.camera.left = -13;
+    key.shadow.camera.right = 13;
+    key.shadow.camera.top = 13;
+    key.shadow.camera.bottom = -13;
     key.shadow.bias = -0.0006;
     key.shadow.normalBias = 0.03;
     scene.add(key);
@@ -875,8 +875,8 @@
     const hallH = hallTop + 0.45;
     const hallCY = (hallTop - 0.45) / 2;
     wall(backWallMat, 16, hallH, 0.18, 0, hallCY, -5.0);
-    wall(sideWallMat, 0.18, hallH, 22, -6.2, hallCY, 3.0);
-    wall(sideWallMat, 0.18, hallH, 22, 6.2, hallCY, 3.0);
+    wall(sideWallMat, 0.18, hallH, 22, -7.6, hallCY, 3.0);
+    wall(sideWallMat, 0.18, hallH, 22, 7.6, hallCY, 3.0);
 
     // (removed horizontal wall rails/beams per Louis feedback)
 
@@ -935,8 +935,8 @@
     addAdPanel(2.7, 1.4, 1.2, 1.5, -4.86, 0, "black", "black");
     addAdPanel(2.3, 1.35, 4.0, 1.45, -4.86, 0, "teal", "teal");
     // Side wall ad strips
-    addAdPanel(2.1, 1.3, -6.05, 1.5, -1.8, Math.PI / 2, "side", "side_l");
-    addAdPanel(2.1, 1.3, 6.05, 1.5, -1.8, -Math.PI / 2, "side", "side_r");
+    addAdPanel(2.1, 1.3, -7.45, 1.5, -1.8, Math.PI / 2, "side", "side_l");
+    addAdPanel(2.1, 1.3, 7.45, 1.5, -1.8, -Math.PI / 2, "side", "side_r");
 
     // Small digital scoreboard above center ads
     const scoreBoard = new THREE.Mesh(
@@ -1019,18 +1019,20 @@
     }
     wallFan(-5.0, 2.85, -4.7, 0);
     wallFan(5.0, 2.85, -4.7, 0);
-    wallFan(-6.0, 2.7, 0.5, Math.PI / 2);
-    wallFan(6.0, 2.7, 0.5, -Math.PI / 2);
+    wallFan(-7.45, 2.7, 0.5, Math.PI / 2);
+    wallFan(7.45, 2.7, 0.5, -Math.PI / 2);
 
     // ——— Main prawning tank ———
     // Water surface stays at WATER_Y (float / bite anchor). The coping sits
     // well above it so freeboard, inner wall, and rim thickness read as a tank.
     // Never put a solid lid over the water.
     const WATER_Y = 0.42;
-    // Bigger pool (Louis: 池睇落更加大). Everything below derives from
-    // innerW/innerD except the near-rim props, which shift +0.55 in z.
-    const innerW = 7.4;
-    const innerD = 5.0;
+    // Pool x1.5 (Louis 2026-10-25: 都係唔夠大，試吓做大1.5倍).
+    // Everything below derives from innerW/innerD except the near-rim
+    // props, which shift +1.25 in z, and the side walls/ads/fans, which
+    // move out to clear the wider pool.
+    const innerW = 11.1;
+    const innerD = 7.5;
     const wallThick = 0.56;
     const capT = 0.12;
     const freeboard = 0.46;
@@ -1226,7 +1228,7 @@
     waterVolume.renderOrder = 1;
     poolGroup.add(waterVolume);
 
-    const waterGeo = new THREE.PlaneGeometry(innerW - 0.2, innerD - 0.2, 64, 44);
+    const waterGeo = new THREE.PlaneGeometry(innerW - 0.2, innerD - 0.2, 80, 56);
     const waterBump = makeNoiseTexture(256, "#404040", "#6a6a6a");
     waterBump.wrapS = waterBump.wrapT = THREE.RepeatWrapping;
     waterBump.repeat.set(6, 4);
@@ -1335,11 +1337,11 @@
       return bubbles;
     }
     // 氣泡區 — distinct aeration columns (釣蝦場 style)
-    makeBubbleCluster(0.2, -1.1, 55);
-    makeBubbleCluster(-1.6, 0.7, 48);
-    makeBubbleCluster(1.7, 0.5, 48);
-    makeBubbleCluster(-0.6, -0.2, 40);
-    makeBubbleCluster(1.0, -0.7, 36);
+    makeBubbleCluster(0.3, -1.65, 55);
+    makeBubbleCluster(-2.4, 1.05, 48);
+    makeBubbleCluster(2.55, 0.75, 48);
+    makeBubbleCluster(-0.9, -0.3, 40);
+    makeBubbleCluster(1.5, -1.05, 36);
 
     // ——— Taiwan 阿波 / 長標 / 短標 (神綱-style silhouette; no brand logos) ———
     function buildFloatMesh(style) {
@@ -1490,7 +1492,7 @@
 
     rodParts.rotation.z = Math.PI / 2.15;
     rodParts.rotation.y = -0.32;
-    rodParts.position.set(0.95, deckTop + 0.34, 2.90);
+    rodParts.position.set(0.95, deckTop + 0.34, 4.15);
     rodTip.add(rodParts);
     scene.add(rodTip);
 
@@ -1537,7 +1539,7 @@
     );
     restDot.position.set(0.12, 0.05, 0.04);
     rest.add(restDot);
-    rest.position.set(0.35, deckTop + 0.02, 2.73);
+    rest.position.set(0.35, deckTop + 0.02, 3.98);
     rest.scale.setScalar(1.45);
     rest.rotation.y = 0.08;
     scene.add(rest);
