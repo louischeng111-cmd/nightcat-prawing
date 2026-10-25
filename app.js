@@ -735,10 +735,10 @@
     key.shadow.mapSize.set(2048, 2048);
     key.shadow.camera.near = 1;
     key.shadow.camera.far = 40;
-    key.shadow.camera.left = -20;
-    key.shadow.camera.right = 20;
-    key.shadow.camera.top = 20;
-    key.shadow.camera.bottom = -20;
+    key.shadow.camera.left = -24;
+    key.shadow.camera.right = 24;
+    key.shadow.camera.top = 24;
+    key.shadow.camera.bottom = -24;
     key.shadow.bias = -0.0006;
     key.shadow.normalBias = 0.03;
     scene.add(key);
@@ -760,10 +760,10 @@
       ledPositions.push([0, hallTop - 0.18, z]);
     }
     ledPositions.forEach(([x, y, z]) => {
-      const frame = new THREE.Mesh(new THREE.BoxGeometry(24, 0.05, 0.7), ledFrameMat);
+      const frame = new THREE.Mesh(new THREE.BoxGeometry(36, 0.05, 0.7), ledFrameMat);
       frame.position.set(x, y, z);
       scene.add(frame);
-      const panel = new THREE.Mesh(new THREE.BoxGeometry(23.6, 0.04, 0.5), ledPanelMat);
+      const panel = new THREE.Mesh(new THREE.BoxGeometry(35.6, 0.04, 0.5), ledPanelMat);
       panel.position.set(x, y - 0.02, z);
       scene.add(panel);
       const pl = new THREE.PointLight(0xfffaf4, 0.2, 10, 2);
@@ -793,17 +793,17 @@
     }
     const blueGridTexBack = makeBlueGridTexture(256);
     blueGridTexBack.wrapS = blueGridTexBack.wrapT = THREE.RepeatWrapping;
-    blueGridTexBack.repeat.set(10, 5);
+    blueGridTexBack.repeat.set(14, 5);
     const blueGridTexSide = makeBlueGridTexture(256);
     blueGridTexSide.wrapS = blueGridTexSide.wrapT = THREE.RepeatWrapping;
     blueGridTexSide.repeat.set(10, 5);
     const deckTex = makeRedBrownFloorTexture(256);
     deckTex.wrapS = deckTex.wrapT = THREE.RepeatWrapping;
-    deckTex.repeat.set(9, 9);
+    deckTex.repeat.set(11, 9);
 
     // Floor — light grey squares, same hall as the reference photo.
     const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(36, 36),
+      new THREE.PlaneGeometry(44, 36),
       new THREE.MeshStandardMaterial({
         map: deckTex,
         bumpMap: deckTex,
@@ -851,15 +851,15 @@
     // Tall hall so the pulled-back phone camera stays inside the warehouse.
     const hallH = hallTop + 0.45;
     const hallCY = (hallTop - 0.45) / 2;
-    wall(backWallMat, 28, hallH, 0.18, 0, hallCY, -8.9);
-    wall(sideWallMat, 0.18, hallH, 28, -13.3, hallCY, 4.0);
-    wall(sideWallMat, 0.18, hallH, 28, 13.3, hallCY, 4.0);
+    wall(backWallMat, 40, hallH, 0.18, 0, hallCY, -8.9);
+    wall(sideWallMat, 0.18, hallH, 28, -18.9, hallCY, 4.0);
+    wall(sideWallMat, 0.18, hallH, 28, 18.9, hallCY, 4.0);
 
     // (removed horizontal wall rails/beams per Louis feedback)
 
     // Bright white ceiling panels
     const ceiling = new THREE.Mesh(
-      new THREE.PlaneGeometry(29, 29),
+      new THREE.PlaneGeometry(40, 29),
       new THREE.MeshStandardMaterial({ color: 0x0e1526, roughness: 0.95, side: THREE.FrontSide })
     );
     ceiling.rotation.x = Math.PI / 2;
@@ -906,16 +906,18 @@
       });
       return g;
     }
-    // Far wall row of ad spaces, moved up into the freed hall-sign space
-    // and enlarged ~1.35x (2026-10-25 per Louis). z follows the back
-    // wall, which moved out for the doubled pool.
-    addAdPanel(3.3, 1.8, -5.4, 2.3, -8.75, 0, "green", "green");
-    addAdPanel(2.7, 1.9, -1.9, 2.3, -8.75, 0, "logo", "logo");
-    addAdPanel(3.6, 1.9, 1.7, 2.3, -8.75, 0, "black", "black");
-    addAdPanel(3.1, 1.8, 5.3, 2.3, -8.75, 0, "teal", "teal");
-    // Side wall ad strips
-    addAdPanel(2.1, 1.3, -13.15, 1.5, -1.8, Math.PI / 2, "side", "side_l");
-    addAdPanel(2.1, 1.3, 13.15, 1.5, -1.8, -Math.PI / 2, "side", "side_r");
+    // Far wall row: three panels, raised and centered (2026-10-25 per
+    // Louis: 正面三張放高一些置中; the logo slot drops out, leaving
+    // green / black / teal). z follows the back wall.
+    addAdPanel(3.3, 1.8, -4.2, 3.1, -8.75, 0, "green", "green");
+    addAdPanel(3.6, 1.9, 0, 3.1, -8.75, 0, "black", "black");
+    addAdPanel(3.1, 1.8, 4.2, 3.1, -8.75, 0, "teal", "teal");
+    // Side wall ad strips: two per side (2026-10-25 per Louis: 側面各兩張),
+    // moved out to the widened side walls.
+    addAdPanel(2.1, 1.3, -18.75, 1.5, -4.0, Math.PI / 2, "side", "side_l");
+    addAdPanel(2.1, 1.3, -18.75, 1.5, 2.0, Math.PI / 2, "side", "side_l2");
+    addAdPanel(2.1, 1.3, 18.75, 1.5, -4.0, -Math.PI / 2, "side", "side_r");
+    addAdPanel(2.1, 1.3, 18.75, 1.5, 2.0, -Math.PI / 2, "side", "side_r2");
 
     // Small digital scoreboard above center ads
     const scoreBoard = new THREE.Mesh(
@@ -928,7 +930,7 @@
       })
     );
 
-    scoreBoard.position.set(4.7, 3.6, -8.73);
+    scoreBoard.position.set(0, 4.6, -8.73);
     scene.add(scoreBoard);
 
     // (Center hall name sign removed 2026-10-25 per Louis; the sponsor
@@ -942,12 +944,11 @@
     // well above it so freeboard, inner wall, and rim thickness read as a tank.
     // Never put a solid lid over the water.
     const WATER_Y = 0.42;
-    // Pool x2 (Louis 2026-10-25: 池子仍然不夠大，試下放大兩倍 —
-    // world size doubles from 11.1x7.5 to 22.2x15, hall expands with it).
-    // Everything below derives from innerW/innerD except the near-rim
-    // props, which shift +3.75 in z, and the hall walls/ads, which
-    // move out to clear the wider pool.
-    const innerW = 22.2;
+    // Pool width x1.5 (Louis 2026-10-25: 池左右再大1.5倍 —
+    // width 22.2 to 33.3, depth stays 15.0, hall expands sideways).
+    // Everything below derives from innerW/innerD except the hall
+    // walls/ads, which move out to clear the wider pool.
+    const innerW = 33.3;
     const innerD = 15.0;
     const wallThick = 0.56;
     const capT = 0.12;
@@ -1144,7 +1145,7 @@
     waterVolume.renderOrder = 1;
     poolGroup.add(waterVolume);
 
-    const waterGeo = new THREE.PlaneGeometry(innerW - 0.2, innerD - 0.2, 140, 96);
+    const waterGeo = new THREE.PlaneGeometry(innerW - 0.2, innerD - 0.2, 200, 96);
     const waterBump = makeNoiseTexture(256, "#404040", "#6a6a6a");
     waterBump.wrapS = waterBump.wrapT = THREE.RepeatWrapping;
     waterBump.repeat.set(6, 4);
@@ -1252,13 +1253,13 @@
       poolGroup.add(bubbles);
       return bubbles;
     }
-    // 氣泡區 — distinct aeration columns (釣蝦場 style), spread x2
-    // with the doubled pool
-    makeBubbleCluster(0.6, -3.3, 55);
-    makeBubbleCluster(-4.8, 2.1, 48);
-    makeBubbleCluster(5.1, 1.5, 48);
-    makeBubbleCluster(-1.8, -0.6, 40);
-    makeBubbleCluster(3.0, -2.1, 36);
+    // 氣泡區 — distinct aeration columns (釣蝦場 style), x spread x1.5
+    // with the widened pool (depth unchanged)
+    makeBubbleCluster(0.9, -3.3, 55);
+    makeBubbleCluster(-7.2, 2.1, 48);
+    makeBubbleCluster(7.65, 1.5, 48);
+    makeBubbleCluster(-2.7, -0.6, 40);
+    makeBubbleCluster(4.5, -2.1, 36);
 
     // ——— Taiwan 阿波 / 長標 / 短標 (神綱-style silhouette; no brand logos) ———
     function buildFloatMesh(style) {
