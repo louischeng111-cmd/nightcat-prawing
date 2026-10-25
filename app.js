@@ -1007,9 +1007,12 @@
     game.waterY = WATER_Y;
 
     // Marble cap from the recessed-pool pass. Outer walls are raised tiles. Water stays teal.
-    const seaTeal = 0x0e948e;
-    const seaDeepTeal = 0x0a5e5c;
-    const seaSurfaceTeal = 0x1cbfb6;
+    // Pool blue changed 2026-10-25 per Louis to the cover art's blue
+    // (sampled from covers/cover-au-daiwa-brush.jpg water band):
+    // was teal (0e948e / 0a5e5c / 1cbfb6), now royal blue.
+    const seaTeal = 0x1e4f9e;
+    const seaDeepTeal = 0x102d68;
+    const seaSurfaceTeal = 0x2f66c4;
     const capMat = new THREE.MeshStandardMaterial({
       map: marbleTex,
       bumpMap: marbleBump || null,
@@ -1146,7 +1149,7 @@
     box(innerMat, fbT, fbH, innerD - 0.16, -(halfW - 0.035), fbCY, 0, true);
     box(innerMat, fbT, fbH, innerD - 0.16, halfW - 0.035, fbCY, 0, true);
 
-    const floorTile = makeTileTexture(128, "#1cbfb6", "#0e948e", 8);
+    const floorTile = makeTileTexture(128, "#2f66c4", "#1e4f9e", 8);
     floorTile.wrapS = floorTile.wrapT = THREE.RepeatWrapping;
     floorTile.repeat.set(5, 3);
     const tankFloor = new THREE.Mesh(
@@ -1209,7 +1212,7 @@
 
     // Dark contact where the water meets the wall — not a bright surface rail.
     const edgeMat = new THREE.MeshStandardMaterial({
-      color: 0x085e5c,
+      color: 0x0a2a5e,
       roughness: 0.5,
       metalness: 0.02,
       transparent: true,
@@ -1686,23 +1689,24 @@
     return tex;
   }
 
-  // Reference-venue palette (from Louis's Prawing-max screenshots, described
-  // in our own words, no copied art): blue wall tiles, kept deliberately
-  // plain — second simplification round (2026-10-25: Louis said the
-  // walls still looked too busy). Seams nearly the tile colour, almost
-  // no per-tile variation, larger tiles (about 1 m on the wall).
+  // Wall tiles, kept deliberately plain — second simplification round
+  // (2026-10-25: Louis said the walls still looked too busy). Seams
+  // nearly the tile colour, almost no per-tile variation, larger tiles
+  // (about 1 m on the wall). Colour changed 2026-10-25 per Louis to
+  // the cover art's grey-white (sampled from covers/cover-au-daiwa-
+  // brush.jpg; old blueGrid names kept to avoid churn).
   function makeBlueGridTexture(size) {
     const c = document.createElement("canvas");
     c.width = c.height = size;
     const ctx = c.getContext("2d");
     const div = 4;
     const cell = size / div;
-    ctx.fillStyle = "rgb(109,162,218)";
+    ctx.fillStyle = "rgb(206,206,202)";
     ctx.fillRect(0, 0, size, size);
     for (let y = 0; y < div; y++) {
       for (let x = 0; x < div; x++) {
         const v = Math.floor(Math.random() * 4) - 2;
-        const r = 111 + v, g = 164 + v, b = 220 + v;
+        const r = 212 + v, g = 212 + v, b = 208 + v;
         ctx.fillStyle = `rgb(${r},${g},${b})`;
         ctx.fillRect(x * cell + 1, y * cell + 1, cell - 2, cell - 2);
       }
