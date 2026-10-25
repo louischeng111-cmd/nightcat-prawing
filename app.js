@@ -793,10 +793,10 @@
     }
     const blueGridTexBack = makeBlueGridTexture(256);
     blueGridTexBack.wrapS = blueGridTexBack.wrapT = THREE.RepeatWrapping;
-    blueGridTexBack.repeat.set(14, 5);
+    blueGridTexBack.repeat.set(10, 4);
     const blueGridTexSide = makeBlueGridTexture(256);
     blueGridTexSide.wrapS = blueGridTexSide.wrapT = THREE.RepeatWrapping;
-    blueGridTexSide.repeat.set(10, 5);
+    blueGridTexSide.repeat.set(7, 4);
     const deckTex = makeRedBrownFloorTexture(256);
     deckTex.wrapS = deckTex.wrapT = THREE.RepeatWrapping;
     deckTex.repeat.set(11, 9);
@@ -834,7 +834,7 @@
       map: blueGridTexSide,
       color: 0xffffff,
       bumpMap: sideWallBump,
-      bumpScale: 0.02,
+      bumpScale: 0.005,
       roughness: 0.85,
       metalness: 0.0,
       emissive: hallWall,
@@ -910,15 +910,16 @@
     // 2026-10-25 per Louis (正面再放大，大細看上去就好像左右兩側):
     // 8.0 x 4.0 -> 11.0 x 5.5, centers -13 / 0 / 13 — outer edges at
     // 18.5 clear the side walls (inner faces 18.81). All five raised
-    // together (Louis: 五塊都要再放高一些) to y 4.2, same height.
+    // together, then raised a touch more (Louis: 按剛才升高的比例
+    // 再高些少) from y 4.2 to y 4.7, same height.
     // z follows the back wall.
-    addAdPanel(11.0, 5.5, -13, 4.2, -8.75, 0, "green", "green");
-    addAdPanel(11.0, 5.5, 0, 4.2, -8.75, 0, "black", "black");
-    addAdPanel(11.0, 5.5, 13, 4.2, -8.75, 0, "teal", "teal");
+    addAdPanel(11.0, 5.5, -13, 4.7, -8.75, 0, "green", "green");
+    addAdPanel(11.0, 5.5, 0, 4.7, -8.75, 0, "black", "black");
+    addAdPanel(11.0, 5.5, 13, 4.7, -8.75, 0, "teal", "teal");
     // Side walls: one panel each, size unchanged (the reference size
     // the front row now matches), raised to the same height.
-    addAdPanel(8.0, 4.0, -18.75, 4.2, 4.0, Math.PI / 2, "side", "side_l");
-    addAdPanel(8.0, 4.0, 18.75, 4.2, 4.0, -Math.PI / 2, "side", "side_r");
+    addAdPanel(8.0, 4.0, -18.75, 4.7, 4.0, Math.PI / 2, "side", "side_l");
+    addAdPanel(8.0, 4.0, 18.75, 4.7, 4.0, -Math.PI / 2, "side", "side_r");
 
     // (Small digital scoreboard removed 2026-10-25 per Louis — the
     // yellow-circled box above the center panel; HUD already shows
@@ -1640,22 +1641,23 @@
 
   // Reference-venue palette (from Louis's Prawing-max screenshots, described
   // in our own words, no copied art): blue wall tiles, kept deliberately
-  // plain (2026-10-25: Louis said the small grid looked too busy) —
-  // large tiles, grout close to the tile colour, minimal variation.
+  // plain — second simplification round (2026-10-25: Louis said the
+  // walls still looked too busy). Seams nearly the tile colour, almost
+  // no per-tile variation, larger tiles (about 1 m on the wall).
   function makeBlueGridTexture(size) {
     const c = document.createElement("canvas");
     c.width = c.height = size;
     const ctx = c.getContext("2d");
     const div = 4;
     const cell = size / div;
-    ctx.fillStyle = "#8fb6de";
+    ctx.fillStyle = "rgb(109,162,218)";
     ctx.fillRect(0, 0, size, size);
     for (let y = 0; y < div; y++) {
       for (let x = 0; x < div; x++) {
-        const v = Math.floor(Math.random() * 8) - 4;
+        const v = Math.floor(Math.random() * 4) - 2;
         const r = 111 + v, g = 164 + v, b = 220 + v;
         ctx.fillStyle = `rgb(${r},${g},${b})`;
-        ctx.fillRect(x * cell + 1.5, y * cell + 1.5, cell - 3, cell - 3);
+        ctx.fillRect(x * cell + 1, y * cell + 1, cell - 2, cell - 2);
       }
     }
     const tex = new THREE.CanvasTexture(c);
