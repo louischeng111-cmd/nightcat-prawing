@@ -603,14 +603,16 @@
     if (!camera || !game.camLook) return;
     const aspect = camera.aspect > 0 ? camera.aspect : 1;
     if (aspect < 0.9) {
-      // Bigger pool (7.4 x 5.0): pulled back and higher so the whole rim
-      // and the far ad row still fit a narrow phone at yaw/pitch 0.
-      camera.fov = 54;
-      camera.position.set(0.05, 5.15, 6.35);
+      // Framing fix: the bigger pool (7.4 x 5.0) must LOOK bigger on
+      // screen, so the camera sits closer instead of pulling back to fit
+      // the whole room. Far ad row is a pan-up away, not in the default
+      // frame. (Earlier realism-v1 pulled back and cancelled the enlargement.)
+      camera.fov = 52;
+      camera.position.set(0.05, 4.4, 5.1);
       game.camLook.set(0, 0.7, -0.3);
     } else {
       camera.fov = 48;
-      camera.position.set(0.12, 6.7, 10.4);
+      camera.position.set(0.12, 5.6, 8.3);
       game.camLook.set(0, 0.42, -0.45);
     }
     game.camHome.copy(camera.position);
@@ -1231,7 +1233,7 @@
     const surfaceMat = new THREE.MeshStandardMaterial({
       color: seaSurfaceTeal,
       bumpMap: waterBump,
-      bumpScale: 0.015,
+      bumpScale: 0.025,
       roughness: 0.06,
       metalness: 0.05,
       transparent: true,
