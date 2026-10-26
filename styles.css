@@ -420,7 +420,7 @@ html, body {
   justify-content: center;
   gap: 0.05rem;
   background: var(--card);
-  border: 2px solid var(--neon);
+  border: 3px solid var(--neon);
   border-radius: 8px;
   padding: 0.22rem 0.45rem 0.28rem;
   min-height: 46px;
@@ -430,7 +430,7 @@ html, body {
   white-space: nowrap;
   color: var(--hud-text);
   flex: 1 1 0;
-  box-shadow: 0 0 10px rgba(43, 255, 136, 0.28);
+  box-shadow: 0 0 16px rgba(43, 255, 136, 0.5);
 }
 .pill .k {
   font-size: 0.62rem;
@@ -466,7 +466,7 @@ html, body {
   flex: 0 0 auto;
   background: var(--card);
   color: var(--hud-text);
-  border: 2px solid #ff5252;
+  border: 3px solid #ff5252;
   border-radius: 999px;
   padding: 0.22rem 0.7rem;
   min-height: 32px;
@@ -495,10 +495,10 @@ html, body {
   max-width: 34px;
   height: 32px;
   border-radius: 8px;
-  border: 2px solid var(--neon);
+  border: 3px solid var(--neon);
   background: var(--card);
   color: var(--hud-text);
-  box-shadow: 0 0 8px rgba(43, 255, 136, 0.25);
+  box-shadow: 0 0 12px rgba(43, 255, 136, 0.45);
   cursor: pointer;
   font-size: 0.95rem;
   line-height: 1;
@@ -508,11 +508,11 @@ html, body {
 }
 #btn-dex, #btn-boss {
   border-color: #c86bff;
-  box-shadow: 0 0 8px rgba(200, 107, 255, 0.35);
+  box-shadow: 0 0 12px rgba(200, 107, 255, 0.5);
 }
 #btn-guide, #btn-basket {
   border-color: #4da3ff;
-  box-shadow: 0 0 8px rgba(77, 163, 255, 0.35);
+  box-shadow: 0 0 12px rgba(77, 163, 255, 0.5);
 }
 @media (min-width: 840px) {
   .pill { min-height: 50px; font-size: 0.8rem; }
@@ -631,17 +631,17 @@ html, body {
 .bottom-bar .btn-action {
   background: linear-gradient(180deg, #155a3e 0%, #0d3b2a 55%, #0a2a20 100%);
   color: #fff;
-  border: 2px solid var(--neon);
+  border: 3px solid var(--neon);
   border-radius: 10px;
   padding: 0.42rem 0.55rem;
   font-size: 0.82rem;
-  box-shadow: 0 0 10px rgba(43, 255, 136, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 14px rgba(43, 255, 136, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 .bottom-bar .btn-action.fire {
   width: 100%;
   flex: none;
   min-height: 58px;
-  border: 2px solid #ffc93c;
+  border: 3px solid #ffc93c;
   border-radius: 16px;
   padding: 0.7rem 1rem;
   background: linear-gradient(180deg, #ffc93c 0%, #ff9100 35%, var(--orange) 70%, #e4570c 100%);
@@ -650,7 +650,7 @@ html, body {
   font-size: 1.45rem;
   font-weight: 900;
   letter-spacing: 0.16em;
-  box-shadow: 0 8px 18px rgba(242, 101, 18, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 22px rgba(242, 101, 18, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 .bottom-bar .btn-action.fire:hover:not(:disabled) {
   filter: brightness(1.07);
@@ -851,9 +851,9 @@ html, body {
 .contract-strip::-webkit-scrollbar { display: none; }
 .contract-chip {
   background: var(--card);
-  border: 2px solid var(--neon);
+  border: 3px solid var(--neon);
   color: var(--hud-text);
-  box-shadow: 0 0 8px rgba(43, 255, 136, 0.25);
+  box-shadow: 0 0 12px rgba(43, 255, 136, 0.45);
   border-radius: 10px;
   padding: 0.4rem 0.75rem;
   min-height: 36px;
