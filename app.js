@@ -1423,11 +1423,13 @@
     const surfaceMat = new THREE.MeshStandardMaterial({
       color: seaSurfaceTeal,
       bumpMap: waterBump,
-      bumpScale: 0.05,
-      // 水波太反光 (2026-10-26 Louis)：水面由鏡面 (0.06) 改做半啞光 (0.28)，
-      // 環境反射強度減半，令天花光帶嘅反光紋柔和啲，唔再咁刺眼
-      roughness: 0.28,
-      envMapIntensity: 0.45,
+      // 水波不要了＋波浪再細一點 (2026-10-26 Louis)：起伏由 0.05 減到 0.015，
+      // 近乎平靜水面，只留極輕微質感（要完全平可以再較到 0）
+      bumpScale: 0.015,
+      // 反光再少一點 (2026-10-26 Louis)：粗糙度 0.28→0.38、環境反射 0.45→0.25，
+      // 天花光帶嘅反光再暗再柔；氣泡（加法混合）不受影響
+      roughness: 0.38,
+      envMapIntensity: 0.25,
       metalness: 0.05,
       transparent: true,
       opacity: 0.7,
