@@ -1231,10 +1231,10 @@
     // before that teal. Clearer too (see opacities below).
     // Brightened 2026-10-26 per Louis toward the reference screenshot's
     // brighter aqua-cyan water (same green family, one step brighter).
-    // 水色再深少少 (2026-10-26 Louis)：三隻色亮度再 x0.88（上次 x0.88 之後再深一成）
-    const seaTeal = 0x24826f;
-    const seaDeepTeal = 0x215e4d;
-    const seaSurfaceTeal = 0x2c9d8b;
+    // 水色再深啲 (2026-10-26 Louis)：三隻色亮度再 x0.88
+    const seaTeal = 0x207262;
+    const seaDeepTeal = 0x1d5344;
+    const seaSurfaceTeal = 0x278a7a;
     const capMat = new THREE.MeshStandardMaterial({
       map: marbleTex,
       bumpMap: marbleBump || null,
@@ -1423,9 +1423,9 @@
     const surfaceMat = new THREE.MeshStandardMaterial({
       color: seaSurfaceTeal,
       bumpMap: waterBump,
-      // 水波不要了＋波浪再細一點 (2026-10-26 Louis)：起伏由 0.05 減到 0.015，
-      // 近乎平靜水面，只留極輕微質感（要完全平可以再較到 0）
-      bumpScale: 0.015,
+      // 要波浪但不要太大 (2026-10-26 Louis 更正)：起伏 0.03，
+      // 介乎之前 0.05（太大）同 0.015（冇晒）中間，波浪適中
+      bumpScale: 0.03,
       // 反光再少一點 (2026-10-26 Louis)：粗糙度 0.28→0.38、環境反射 0.45→0.25，
       // 天花光帶嘅反光再暗再柔；氣泡（加法混合）不受影響
       roughness: 0.38,
@@ -1488,61 +1488,8 @@
     box(lipShadowMat, 0.07, lipT, sideSpanZ - 0.2, -(innerX + 0.02), lipY, 0, false);
     box(lipShadowMat, 0.07, lipT, sideSpanZ - 0.2, innerX + 0.02, lipY, 0, false);
 
-    // Underwater air stones only (surface T-pipe removed — looked like stray bar on water)
-    const bubbler = new THREE.Mesh(
-      new THREE.SphereGeometry(0.09, 10, 10),
-      new THREE.MeshStandardMaterial({ color: 0x666870, roughness: 0.85 })
-    );
-    bubbler.position.set(0.15, bottomY + 0.12, -1.0);
-    poolGroup.add(bubbler);
-    const bubbler2 = bubbler.clone();
-    bubbler2.position.set(-1.2, bottomY + 0.12, 0.6);
-    poolGroup.add(bubbler2);
+    // 氣泡已移除 (2026-10-26 Louis：氣泡不要），出氣石一併拎走
 
-    function makeBubbleCluster(cx, cz, count) {
-      const bubbleGeo = new THREE.BufferGeometry();
-      const bPos = new Float32Array(count * 3);
-      for (let i = 0; i < count; i++) {
-        const r = Math.random();
-        const rad = 0.12 + r * 0.28;
-        const ang = Math.random() * Math.PI * 2;
-        bPos[i * 3] = cx + Math.cos(ang) * rad;
-        // Bias bubbles toward mid-upper column so surface break reads clearly
-        bPos[i * 3 + 1] = bottomY + 0.12 + Math.pow(Math.random(), 0.55) * (WATER_Y - bottomY - 0.05);
-        bPos[i * 3 + 2] = cz + Math.sin(ang) * rad;
-      }
-      bubbleGeo.setAttribute("position", new THREE.BufferAttribute(bPos, 3));
-      const bubbles = new THREE.Points(
-        bubbleGeo,
-        new THREE.PointsMaterial({
-          color: 0xf2faff,
-          // 氣泡睇得到 (2026-10-26 Louis：水入邊要有泡泡上嚟)：原本 0.15 太細太唔顯眼，改大一倍
-          size: 0.30,
-          transparent: true,
-          opacity: 0.92,
-          depthWrite: false,
-          sizeAttenuation: true,
-          // 關鍵：水體（0.74 透明）同水面（0.7 透明）會喺混合順序上蓋過氣泡，
-          // 令氣泡幾乎睇唔到；加法混合＋renderOrder 2 令氣泡喺水色之上發光，
-          // depthTest 照常擋住池邊等實物，睇落就係水入邊有光點向上升
-          blending: THREE.AdditiveBlending,
-        })
-      );
-      bubbles.renderOrder = 2;
-      bubbles.userData.waterY = WATER_Y;
-      bubbles.userData.bottomY = bottomY + 0.12;
-      bubbles.name = "bubbles";
-      poolGroup.add(bubbles);
-      return bubbles;
-    }
-    // 氣泡區 — distinct aeration columns (釣蝦場 style), x spread x1.5
-    // with the widened pool (depth unchanged)
-    // Bubble zones densified 2026-10-25 per Louis (氣泡區明顯啲).
-    makeBubbleCluster(0.9, -3.3, 80);
-    makeBubbleCluster(-7.2, 2.1, 70);
-    makeBubbleCluster(7.65, 1.5, 70);
-    makeBubbleCluster(-2.7, -0.6, 60);
-    makeBubbleCluster(4.5, -2.1, 55);
 
     // ——— Taiwan 阿波 / 長標 / 短標 (神綱-style silhouette; no brand logos) ———
     function buildFloatMesh(style) {
@@ -2252,22 +2199,6 @@
     // Scrolling LED ticker above the ad row (right-to-left; a full
     // canvas width drifts past every 20 s).
     if (game.tickerTex) game.tickerTex.offset.x = (t * 0.05) % 1;
-
-    // Rising bubbles (all aerator clusters)
-    if (poolGroup) {
-      poolGroup.traverse((obj) => {
-        if (obj.name !== "bubbles" || !obj.geometry) return;
-        const pos = obj.geometry.attributes.position;
-        const top = obj.userData.waterY;
-        const bot = obj.userData.bottomY;
-        for (let i = 0; i < pos.count; i++) {
-          let y = pos.getY(i) + 0.022 + (i % 5) * 0.002;
-          if (y > top - 0.02) y = bot;
-          pos.setY(i, y);
-        }
-        pos.needsUpdate = true;
-      });
-    }
 
     // Ambient shrimp swim
     shrimpMeshes.forEach((s, i) => {
