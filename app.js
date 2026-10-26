@@ -1231,10 +1231,10 @@
     // before that teal. Clearer too (see opacities below).
     // Brightened 2026-10-26 per Louis toward the reference screenshot's
     // brighter aqua-cyan water (same green family, one step brighter).
-    // 水色深少少 (2026-10-26 Louis)：三隻色亮度一律 x0.88
-    const seaTeal = 0x29947e;
-    const seaDeepTeal = 0x256b58;
-    const seaSurfaceTeal = 0x32b29e;
+    // 水色再深少少 (2026-10-26 Louis)：三隻色亮度再 x0.88（上次 x0.88 之後再深一成）
+    const seaTeal = 0x24826f;
+    const seaDeepTeal = 0x215e4d;
+    const seaSurfaceTeal = 0x2c9d8b;
     const capMat = new THREE.MeshStandardMaterial({
       map: marbleTex,
       bumpMap: marbleBump || null,
@@ -1424,7 +1424,10 @@
       color: seaSurfaceTeal,
       bumpMap: waterBump,
       bumpScale: 0.05,
-      roughness: 0.06,
+      // 水波太反光 (2026-10-26 Louis)：水面由鏡面 (0.06) 改做半啞光 (0.28)，
+      // 環境反射強度減半，令天花光帶嘅反光紋柔和啲，唔再咁刺眼
+      roughness: 0.28,
+      envMapIntensity: 0.45,
       metalness: 0.05,
       transparent: true,
       opacity: 0.7,
