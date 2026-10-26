@@ -537,7 +537,7 @@
   let floatBob = { phase: 0, amp: 0.015, sink: 0 };
   // game.waterY set in initScene
 
-  // Near counter: a tackle box (blank logo plate) and one 蝦竿. Nothing else.
+  // Near counter: a 釣蝦箱 (rod case) and one 蝦竿. Nothing else.
   function addSeatTackle(tableY) {
     const tackle = new THREE.Group();
     tackle.name = "seatTackle";
@@ -548,30 +548,39 @@
         metalness: metal == null ? 0.06 : metal,
       });
 
+    // Real 釣蝦箱 (rod case): slim 45 x 20 x 9cm, carbon-dark finish,
+    // top handle + two front latches, closed lid. (The old box was a
+    // 1.33m giant chest with a blank logo plate — neither is real.)
     const boxG = new THREE.Group();
-    const base = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.16, 0.46), plastic(0x5e6a49, 0.48, 0.08));
-    base.position.y = 0.08;
+    const caseMat = plastic(0x232529, 0.42, 0.15);
+    const lidMat = plastic(0x2c2f34, 0.38, 0.18);
+    const hardMat = plastic(0x111214, 0.35, 0.45);
+    const base = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.07, 0.20), caseMat);
+    base.position.y = 0.035;
     base.castShadow = true;
     boxG.add(base);
-    const lip = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.02, 0.48), plastic(0x3d4434, 0.42, 0.12));
-    lip.position.y = 0.16;
-    boxG.add(lip);
-    const lidPivot = new THREE.Group();
-    lidPivot.position.set(0, 0.17, -0.22);
-    const lid = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.03, 0.46), plastic(0x7d8a62, 0.42, 0.06));
-    lid.position.z = 0.23;
+    const lid = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.02, 0.20), lidMat);
+    lid.position.y = 0.08;
     lid.castShadow = true;
-    lidPivot.add(lid);
-    // Empty light panel — room for a future sponsor logo, no marks.
-    const logoPlate = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.008, 0.26), plastic(0xf6f3ec, 0.55, 0.02));
-    logoPlate.position.set(0, 0.022, 0.22);
-    logoPlate.name = "tackleLogoPlate";
-    lidPivot.add(logoPlate);
-    lidPivot.rotation.x = -0.42;
-    boxG.add(lidPivot);
+    boxG.add(lid);
+    // Top handle: two mounts + grip bar.
+    [-0.08, 0.08].forEach((x) => {
+      const mount = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.03, 0.03), hardMat);
+      mount.position.set(x, 0.105, 0);
+      boxG.add(mount);
+    });
+    const grip = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.016, 0.032), hardMat);
+    grip.position.set(0, 0.125, 0);
+    grip.castShadow = true;
+    boxG.add(grip);
+    // Two front latches.
+    [-0.12, 0.12].forEach((x) => {
+      const latch = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.022, 0.012), hardMat);
+      latch.position.set(x, 0.055, 0.103);
+      boxG.add(latch);
+    });
     boxG.position.set(-1.15, tableY, 7.83);
     boxG.rotation.y = 0.22;
-    boxG.scale.setScalar(1.7);
     tackle.add(boxG);
 
     // (Spare rod on the counter removed 2026-10-25 per Louis.)
@@ -1558,6 +1567,10 @@
         bead.position.y = bodyH * 0.55 + tipH * 0.85;
         g.add(bead);
       }
+      // Visibility: a real 阿波 body is only 2–4cm, which reads as a dot
+      // on a phone screen at pool distance. Enlarge the whole float so
+      // the bite signal is actually readable during play.
+      g.scale.setScalar(2.2);
       g.userData.floatStyle = style;
       return g;
     }
@@ -1638,6 +1651,9 @@
     buttKnob.position.y = cursor - 0.05;
     rodParts.add(buttKnob);
 
+    // Visibility: the 2.1m rod reads as a thin line at pool distance.
+    // Enlarge the whole rod so it is clearly present in the frame.
+    rodParts.scale.setScalar(1.5);
     rodParts.rotation.z = Math.PI / 2.15;
     rodParts.rotation.y = -0.32;
     rodParts.position.set(0.95, deckTop + 0.34, 7.90);
@@ -1656,39 +1672,29 @@
     line.name = "fishLine";
     scene.add(line);
 
-    // ——— Rim 置竿架 — low black U-cradle (generic; no brand marks) ———
+    // ——— Rim 架竿器 — small aluminum U-cradle, real 釣蝦架竿器 size
+    // (~13 x 8cm footprint, ~5cm tall) sitting on the pool rim. The old
+    // one was a 0.52m-wide black block — far bigger than the real thing.
     const rest = new THREE.Group();
-    const restBlk = new THREE.MeshStandardMaterial({ color: 0x1a1c20, roughness: 0.4, metalness: 0.25 });
-    const restSil = new THREE.MeshStandardMaterial({ color: 0xb8bec6, roughness: 0.35, metalness: 0.55 });
-    const restBase = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.028, 0.14), restBlk);
+    const alu = new THREE.MeshStandardMaterial({ color: 0xc8ccd2, roughness: 0.3, metalness: 0.85 });
+    const aluDark = new THREE.MeshStandardMaterial({ color: 0x6a6e75, roughness: 0.4, metalness: 0.7 });
+    const restBase = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.012, 0.08), aluDark);
+    restBase.position.y = 0.006;
     rest.add(restBase);
-    // Side plates
-    [-0.15, 0.15].forEach((x) => {
-      const plate = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.13), restSil);
-      plate.position.set(x, 0.03, 0);
-      rest.add(plate);
-    });
     // U-cradle walls + foam pad
-    const uL = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.07, 0.1), restBlk);
-    uL.position.set(-0.05, 0.05, 0);
+    const uL = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.05, 0.07), alu);
+    uL.position.set(-0.05, 0.037, 0);
     rest.add(uL);
     const uR = uL.clone();
     uR.position.x = 0.05;
     rest.add(uR);
     const uPad = new THREE.Mesh(
-      new THREE.BoxGeometry(0.07, 0.012, 0.08),
+      new THREE.BoxGeometry(0.088, 0.01, 0.06),
       new THREE.MeshStandardMaterial({ color: 0x2a2e34, roughness: 0.7 })
     );
-    uPad.position.set(0, 0.03, 0);
+    uPad.position.set(0, 0.017, 0);
     rest.add(uPad);
-    const restDot = new THREE.Mesh(
-      new THREE.SphereGeometry(0.008, 8, 8),
-      new THREE.MeshStandardMaterial({ color: Pal.rodRed, roughness: 0.4, metalness: 0.15 })
-    );
-    restDot.position.set(0.12, 0.05, 0.04);
-    rest.add(restDot);
     rest.position.set(0.35, deckTop + 0.02, 7.73);
-    rest.scale.setScalar(1.45);
     rest.rotation.y = 0.08;
     scene.add(rest);
 
