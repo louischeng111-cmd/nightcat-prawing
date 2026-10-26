@@ -519,6 +519,19 @@
 
   // ——— Three.js scene ———
   let renderer, scene, camera, waterMesh, floatMesh, rodTip, poolGroup;
+
+  // ——— Custom bloom + environment reflections (2026-10-26, Louis: bloom＋環境光) ———
+  // This build is three r160 UMD, which ships no post-processing scripts
+  // (examples/js was removed after r147), so bloom is implemented with
+  // core APIs only: scene -> HDR target -> bright pass -> separable blur
+  // (half res) -> composite (add + ACES + sRGB) -> screen. Rendering to a
+  // target disables the renderer's built-in ACES/sRGB, so the composite
+  // shader applies them explicitly; with strength 0 the output matches
+  // the previous direct render.
+  const bloom = { enabled: true, strength: 0.55, threshold: 0.82 };
+  let bloomRT = null, bloomHalfA = null, bloomHalfB = null;
+  let bloomBrightMat = null, bloomBlurMat = null, bloomCompMat = null;
+  let bloomQuad = null, bloomQuadCam = null, bloomQuadScene = null;
   let shrimpMeshes = [];
   const floatBaseY = 0.02;
   let floatBob = { phase: 0, amp: 0.015, sink: 0 };
@@ -689,6 +702,183 @@
   }
   bindLookPan();
 
+  const BLOOM_QUAD_VERT = "varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }";
+
+  function bloomPixelSize() {
+    const wrap = $("canvas-wrap");
+    const pr = Math.min(window.devicePixelRatio || 1, 2);
+    return {
+      w: Math.max(2, Math.round(wrap.clientWidth * pr)),
+      h: Math.max(2, Math.round(wrap.clientHeight * pr)),
+    };
+  }
+
+  function makeBloomTarget(w, h, withDepth, samples) {
+    const rt = new THREE.WebGLRenderTarget(w, h, {
+      type: THREE.HalfFloatType,
+      format: THREE.RGBAFormat,
+      depthBuffer: withDepth,
+      samples: samples || 0,
+    });
+    rt.texture.colorSpace = THREE.NoColorSpace;
+    return rt;
+  }
+
+  function setupBloom() {
+    if (bloomRT || !renderer) return;
+    const sz = bloomPixelSize();
+    bloomRT = makeBloomTarget(sz.w, sz.h, true, 4);
+    bloomHalfA = makeBloomTarget(Math.max(2, sz.w >> 1), Math.max(2, sz.h >> 1), false, 0);
+    bloomHalfB = makeBloomTarget(Math.max(2, sz.w >> 1), Math.max(2, sz.h >> 1), false, 0);
+    bloomBrightMat = new THREE.ShaderMaterial({
+      uniforms: { tDiffuse: { value: null }, uThreshold: { value: bloom.threshold } },
+      vertexShader: BLOOM_QUAD_VERT,
+      fragmentShader: [
+        "uniform sampler2D tDiffuse; uniform float uThreshold; varying vec2 vUv;",
+        "void main(){",
+        "  vec3 c = texture2D(tDiffuse, vUv).rgb;",
+        "  // Max channel, not luminance: red neon (e.g. the LED board) has",
+        "  // low luminance but must still bloom, while the bright aqua",
+        "  // water body (max ~0.72 linear) stays below the threshold.",
+        "  float l = max(max(c.r, c.g), c.b);",
+        "  float w = smoothstep(uThreshold - 0.15, uThreshold + 0.15, l);",
+        "  gl_FragColor = vec4(c * w, 1.0);",
+        "}",
+      ].join("\n"),
+      depthTest: false, depthWrite: false,
+    });
+    bloomBlurMat = new THREE.ShaderMaterial({
+      uniforms: {
+        tDiffuse: { value: null },
+        uTexel: { value: new THREE.Vector2(1, 1) },
+        uDir: { value: new THREE.Vector2(1, 0) },
+        uRadius: { value: 1.5 },
+      },
+      vertexShader: BLOOM_QUAD_VERT,
+      fragmentShader: [
+        "uniform sampler2D tDiffuse; uniform vec2 uTexel; uniform vec2 uDir; uniform float uRadius; varying vec2 vUv;",
+        "void main(){",
+        "  vec2 off = uTexel * uDir * uRadius;",
+        "  vec3 c = texture2D(tDiffuse, vUv).rgb * 0.18;",
+        "  c += texture2D(tDiffuse, vUv + off * 1.0).rgb * 0.15;",
+        "  c += texture2D(tDiffuse, vUv - off * 1.0).rgb * 0.15;",
+        "  c += texture2D(tDiffuse, vUv + off * 2.0).rgb * 0.12;",
+        "  c += texture2D(tDiffuse, vUv - off * 2.0).rgb * 0.12;",
+        "  c += texture2D(tDiffuse, vUv + off * 3.0).rgb * 0.09;",
+        "  c += texture2D(tDiffuse, vUv - off * 3.0).rgb * 0.09;",
+        "  c += texture2D(tDiffuse, vUv + off * 4.0).rgb * 0.05;",
+        "  c += texture2D(tDiffuse, vUv - off * 4.0).rgb * 0.05;",
+        "  gl_FragColor = vec4(c, 1.0);",
+        "}",
+      ].join("\n"),
+      depthTest: false, depthWrite: false,
+    });
+    bloomCompMat = new THREE.ShaderMaterial({
+      uniforms: {
+        tBase: { value: null },
+        tBloom: { value: null },
+        uStrength: { value: bloom.strength },
+        uExposure: { value: renderer.toneMappingExposure || 1.0 },
+      },
+      vertexShader: BLOOM_QUAD_VERT,
+      fragmentShader: [
+        "uniform sampler2D tBase; uniform sampler2D tBloom; uniform float uStrength; uniform float uExposure; varying vec2 vUv;",
+        "vec3 aces(vec3 x){ return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0); }",
+        "vec3 toSRGB(vec3 c){ return mix(c * 12.92, 1.055 * pow(max(c, vec3(0.0)), vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c)); }",
+        "void main(){",
+        "  vec3 base = texture2D(tBase, vUv).rgb;",
+        "  vec3 glow = texture2D(tBloom, vUv).rgb;",
+        "  vec3 hdr = base + glow * uStrength;",
+        "  gl_FragColor = vec4(toSRGB(aces(hdr * uExposure)), 1.0);",
+        "}",
+      ].join("\n"),
+      depthTest: false, depthWrite: false,
+    });
+    bloomQuadCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    bloomQuadScene = new THREE.Scene();
+    bloomQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), bloomBrightMat);
+    bloomQuad.frustumCulled = false;
+    bloomQuadScene.add(bloomQuad);
+  }
+
+  function resizeBloom() {
+    if (!bloomRT) return;
+    const sz = bloomPixelSize();
+    bloomRT.setSize(sz.w, sz.h);
+    const hw = Math.max(2, sz.w >> 1), hh = Math.max(2, sz.h >> 1);
+    bloomHalfA.setSize(hw, hh);
+    bloomHalfB.setSize(hw, hh);
+  }
+
+  function renderBloom() {
+    if (!bloom.enabled || !bloomRT) { renderer.render(scene, camera); return; }
+    renderer.setRenderTarget(bloomRT);
+    renderer.render(scene, camera);
+    bloomQuad.material = bloomBrightMat;
+    bloomBrightMat.uniforms.tDiffuse.value = bloomRT.texture;
+    renderer.setRenderTarget(bloomHalfA);
+    renderer.render(bloomQuadScene, bloomQuadCam);
+    const hw = bloomHalfA.width, hh = bloomHalfA.height;
+    bloomBlurMat.uniforms.uTexel.value.set(1 / hw, 1 / hh);
+    let src = bloomHalfA, dst = bloomHalfB;
+    for (let i = 0; i < 2; i++) {
+      bloomQuad.material = bloomBlurMat;
+      bloomBlurMat.uniforms.tDiffuse.value = src.texture;
+      bloomBlurMat.uniforms.uDir.value.set(1, 0);
+      renderer.setRenderTarget(dst);
+      renderer.render(bloomQuadScene, bloomQuadCam);
+      const t = src; src = dst; dst = t;
+      bloomBlurMat.uniforms.tDiffuse.value = src.texture;
+      bloomBlurMat.uniforms.uDir.value.set(0, 1);
+      renderer.setRenderTarget(dst);
+      renderer.render(bloomQuadScene, bloomQuadCam);
+      const t2 = src; src = dst; dst = t2;
+    }
+    bloomQuad.material = bloomCompMat;
+    bloomCompMat.uniforms.tBase.value = bloomRT.texture;
+    bloomCompMat.uniforms.tBloom.value = src.texture;
+    renderer.setRenderTarget(null);
+    renderer.render(bloomQuadScene, bloomQuadCam);
+  }
+
+  // Environment reflections via core PMREM (no addon needed): a dim hall
+  // shell with bright ceiling strips + warm/cool neon washes, so glossy
+  // surfaces (water, marble, ad frames) pick up soft highlights without
+  // washing out the scene. Kept dim on purpose; IBL diffuse stays low.
+  function buildEnvironment() {
+    try {
+      if (!renderer || !scene || scene.environment) return;
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      const env = new THREE.Scene();
+      const shell = new THREE.Mesh(
+        new THREE.BoxGeometry(20, 12, 20),
+        new THREE.MeshBasicMaterial({ color: 0x11151d, side: THREE.BackSide })
+      );
+      env.add(shell);
+      const stripMat = new THREE.MeshBasicMaterial({ color: 0xd8d8d8 });
+      [-6, -2, 2, 6].forEach((x) => {
+        const s = new THREE.Mesh(new THREE.PlaneGeometry(10, 0.8), stripMat);
+        s.position.set(0, 5.5, x);
+        s.rotation.x = Math.PI / 2;
+        env.add(s);
+      });
+      const warm = new THREE.Mesh(
+        new THREE.PlaneGeometry(8, 3),
+        new THREE.MeshBasicMaterial({ color: 0xff9a3c })
+      );
+      warm.position.set(0, 2.5, -9.5);
+      env.add(warm);
+      const cool = new THREE.Mesh(
+        new THREE.PlaneGeometry(8, 3),
+        new THREE.MeshBasicMaterial({ color: 0x2bff88 })
+      );
+      cool.position.set(0, 2.5, 9.5);
+      cool.rotation.y = Math.PI;
+      env.add(cool);
+      scene.environment = pmrem.fromScene(env, 0.04).texture;
+    } catch (err) { /* reflections stay off; bloom still works */ }
+  }
+
   function initScene() {
     if (typeof THREE === "undefined") {
       console.error("Three.js failed to load");
@@ -728,6 +918,8 @@
       renderer.outputColorSpace = THREE.SRGBColorSpace;
     }
     wrap.appendChild(renderer.domElement);
+    setupBloom();
+    buildEnvironment();
 
     // Bright even hall, with one key soft enough to leave a light pool shadow.
     const hemi = new THREE.HemisphereLight(0xfffaf6, 0xd4cfc6, 1.0);
@@ -2003,6 +2195,7 @@
     camera.aspect = w / Math.max(1, h);
     applyHomeCamera();
     renderer.setSize(w, h);
+    resizeBloom();
   }
 
   function updateLine() {
@@ -2147,7 +2340,7 @@
     if (game.state === STATE.FIGHTING) updateFight(dt);
 
     updateLine();
-    renderer.render(scene, camera);
+    renderBloom();
   }
 
   // ——— Gameplay ———
