@@ -718,9 +718,11 @@
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     // Beauty pass: filmic tone mapping for richer, less washed-out colour.
+    // Brightened 2026-10-26 per Louis (closer to the bright reference
+    // screenshot): exposure 1.12 -> 1.4, lights up across the board.
     if (THREE.ACESFilmicToneMapping !== undefined) {
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.12;
+      renderer.toneMappingExposure = 1.4;
     }
     if (renderer.outputColorSpace !== undefined && THREE.SRGBColorSpace) {
       renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -728,11 +730,11 @@
     wrap.appendChild(renderer.domElement);
 
     // Bright even hall, with one key soft enough to leave a light pool shadow.
-    const hemi = new THREE.HemisphereLight(0xfffaf6, 0xd4cfc6, 0.8);
+    const hemi = new THREE.HemisphereLight(0xfffaf6, 0xd4cfc6, 1.0);
     scene.add(hemi);
-    const amb = new THREE.AmbientLight(0xfff8f2, 0.4);
+    const amb = new THREE.AmbientLight(0xfff8f2, 0.5);
     scene.add(amb);
-    const key = new THREE.DirectionalLight(0xfffaf6, 0.88);
+    const key = new THREE.DirectionalLight(0xfffaf6, 1.1);
     key.position.set(3.2, 9.2, 4.2);
     key.target.position.set(0, 0.35, 0.15);
     scene.add(key.target);
@@ -747,7 +749,7 @@
     key.shadow.bias = -0.0006;
     key.shadow.normalBias = 0.03;
     scene.add(key);
-    const fill = new THREE.DirectionalLight(0xf6f1ea, 0.34);
+    const fill = new THREE.DirectionalLight(0xf6f1ea, 0.45);
     fill.position.set(-3, 5, -2);
     scene.add(fill);
 
@@ -898,6 +900,29 @@
       panel.userData.adStyle = style;
       panel.userData.slotId = slot;
       g.add(panel);
+      // Neon halo behind the panel, 2026-10-26 per Louis (reference
+      // screenshot: every ad glows in its own accent colour). Visual
+      // only: same group, same position/size as before, panel occludes
+      // the halo's middle so only the rim shows.
+      const glowColors = {
+        green: 0xe8c15a,
+        black: 0x4da3ff,
+        teal: 0xff5252,
+        side_l: 0xff7a45,
+        side_r: 0xffc107,
+      };
+      const glow = new THREE.Mesh(
+        new THREE.PlaneGeometry(w + 0.7, h + 0.7),
+        new THREE.MeshBasicMaterial({
+          color: glowColors[slot] !== undefined ? glowColors[slot] : 0xffffff,
+          transparent: true,
+          opacity: 0.32,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        })
+      );
+      glow.position.z = -0.05;
+      g.add(glow);
       g.position.set(x, y, z);
       g.rotation.y = rotY || 0;
       g.userData.adSlot = true;
@@ -1011,19 +1036,21 @@
     // Pool colour changed 2026-10-25 per Louis to lake green
     // (湖水綠): was cover royal blue (1e4f9e / 102d68 / 2f66c4),
     // before that teal. Clearer too (see opacities below).
-    const seaTeal = 0x3a8f74;
-    const seaDeepTeal = 0x276b56;
-    const seaSurfaceTeal = 0x4fb393;
+    // Brightened 2026-10-26 per Louis toward the reference screenshot's
+    // brighter aqua-cyan water (same green family, one step brighter).
+    const seaTeal = 0x2fa88f;
+    const seaDeepTeal = 0x2a7a64;
+    const seaSurfaceTeal = 0x3cc8b2;
     const capMat = new THREE.MeshStandardMaterial({
       map: marbleTex,
       bumpMap: marbleBump || null,
       bumpScale: 0.07,
-      color: 0xd0d0d0,
+      color: 0xe8e8e8,
       roughness: 0.38,
       metalness: 0.04,
     });
     const sideMat = new THREE.MeshStandardMaterial({
-      color: 0x767672,
+      color: 0x9a9a96,
       roughness: 0.92,
       metalness: 0.02,
     });
@@ -1031,7 +1058,7 @@
       map: marbleTex,
       bumpMap: marbleBump || null,
       bumpScale: 0.08,
-      color: 0xb8b8b8,
+      color: 0xd8d8d8,
       roughness: 0.68,
       metalness: 0.03,
     });
@@ -1041,7 +1068,7 @@
       metalness: 0.05,
     });
     const lipShadowMat = new THREE.MeshStandardMaterial({
-      color: 0x767672,
+      color: 0x9a9a96,
       roughness: 0.9,
       metalness: 0.02,
     });
@@ -1068,7 +1095,9 @@
       const proud = 0.022;
       // Marble grey 2026-10-25 per Louis (企身磚同樣雲石灰色),
       // darkened a touch the same day (雲石灰在深色一啲).
-      const colors = [0x9d9d99, 0x8f8f8b, 0xa9a9a5, 0x92928e];
+      // Lightened back 2026-10-26 per Louis toward the reference
+      // screenshot's light-grey marble rim (same tiles, lighter tones).
+      const colors = [0xbdbdb9, 0xafafab, 0xc9c9c6, 0xb2b2ae];
       const tileRough = [0.5, 0.58, 0.46, 0.62];
       const tileBump = makeNoiseTexture(128, "#808080", "#a0a0a0");
       const mats = colors.map((color, i) => new THREE.MeshStandardMaterial({
@@ -1567,9 +1596,9 @@
     const bumpCanvas = document.createElement("canvas");
     bumpCanvas.width = bumpCanvas.height = size;
     const bx = bumpCanvas.getContext("2d");
-    ctx.fillStyle = "#a8a8a4";
+    ctx.fillStyle = "#c9c9c6";
     ctx.fillRect(0, 0, size, size);
-    bx.fillStyle = "rgb(168,168,168)";
+    bx.fillStyle = "rgb(201,201,198)";
     bx.fillRect(0, 0, size, size);
     function vein(width, color, bumpColor) {
       ctx.strokeStyle = color;
@@ -1592,8 +1621,10 @@
       bx.stroke();
     }
     // Grey marble 2026-10-25 per Louis (池枱面用雲石紋灰色), darkened
-    // a touch the same day (雲石灰在深色一啲): neutral grey base with
-    // grey veins, broader veins so the slab reads up close.
+    // a touch the same day (雲石灰在深色一啲), lightened back
+    // 2026-10-26 per Louis toward the reference screenshot's
+    // light-grey marble: neutral light-grey base with grey veins,
+    // broader veins so the slab reads up close.
     for (let i = 0; i < 8; i++) {
       const a = 0.2 + Math.random() * 0.18;
       vein(7 + Math.random() * 9, `rgba(72,72,74,${a})`, "rgba(70,70,70,0.85)");
