@@ -998,7 +998,8 @@
     blueGridTexSide.repeat.set(7, 4);
     const deckTex = makeRedBrownFloorTexture(256);
     deckTex.wrapS = deckTex.wrapT = THREE.RepeatWrapping;
-    deckTex.repeat.set(11, 9);
+    // 每格放大1.5倍 (2026-10-26 Louis)：原本 11x9 格，改做 11/1.5 x 9/1.5
+    deckTex.repeat.set(11 / 1.5, 9 / 1.5);
 
     // Floor — light grey squares, same hall as the reference photo.
     const floor = new THREE.Mesh(
@@ -1230,9 +1231,10 @@
     // before that teal. Clearer too (see opacities below).
     // Brightened 2026-10-26 per Louis toward the reference screenshot's
     // brighter aqua-cyan water (same green family, one step brighter).
-    const seaTeal = 0x2fa88f;
-    const seaDeepTeal = 0x2a7a64;
-    const seaSurfaceTeal = 0x3cc8b2;
+    // 水色深少少 (2026-10-26 Louis)：三隻色亮度一律 x0.88
+    const seaTeal = 0x29947e;
+    const seaDeepTeal = 0x256b58;
+    const seaSurfaceTeal = 0x32b29e;
     const capMat = new THREE.MeshStandardMaterial({
       map: marbleTex,
       bumpMap: marbleBump || null,
@@ -1416,11 +1418,12 @@
     const waterGeo = new THREE.PlaneGeometry(innerW - 0.2, innerD - 0.2, 200, 96);
     const waterBump = makeNoiseTexture(256, "#404040", "#6a6a6a");
     waterBump.wrapS = waterBump.wrapT = THREE.RepeatWrapping;
-    waterBump.repeat.set(6, 4);
+    // 波浪細小小 (2026-10-26 Louis)：紋理密啲（6,4 → 8,5）＋起伏低啲（見下面 bumpScale 0.08 → 0.05）
+    waterBump.repeat.set(8, 5);
     const surfaceMat = new THREE.MeshStandardMaterial({
       color: seaSurfaceTeal,
       bumpMap: waterBump,
-      bumpScale: 0.08,
+      bumpScale: 0.05,
       roughness: 0.06,
       metalness: 0.05,
       transparent: true,
@@ -1508,13 +1511,19 @@
         bubbleGeo,
         new THREE.PointsMaterial({
           color: 0xf2faff,
-          size: 0.15,
+          // 氣泡睇得到 (2026-10-26 Louis：水入邊要有泡泡上嚟)：原本 0.15 太細太唔顯眼，改大一倍
+          size: 0.30,
           transparent: true,
           opacity: 0.92,
           depthWrite: false,
           sizeAttenuation: true,
+          // 關鍵：水體（0.74 透明）同水面（0.7 透明）會喺混合順序上蓋過氣泡，
+          // 令氣泡幾乎睇唔到；加法混合＋renderOrder 2 令氣泡喺水色之上發光，
+          // depthTest 照常擋住池邊等實物，睇落就係水入邊有光點向上升
+          blending: THREE.AdditiveBlending,
         })
       );
+      bubbles.renderOrder = 2;
       bubbles.userData.waterY = WATER_Y;
       bubbles.userData.bottomY = bottomY + 0.12;
       bubbles.name = "bubbles";
