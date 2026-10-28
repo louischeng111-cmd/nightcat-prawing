@@ -581,6 +581,8 @@
     });
     boxG.position.set(-1.15, tableY, 7.83);
     boxG.rotation.y = 0.22;
+    // 2026-10-28 Louis: double the whole box from the real 45cm size.
+    boxG.scale.setScalar(2);
     tackle.add(boxG);
 
     // (Spare rod on the counter removed 2026-10-25 per Louis.)
@@ -1570,7 +1572,8 @@
       // Visibility: a real 阿波 body is only 2–4cm, which reads as a dot
       // on a phone screen at pool distance. Enlarge the whole float so
       // the bite signal is actually readable during play.
-      g.scale.setScalar(2.2);
+      // 2026-10-28 Louis: double again from the gear-v1 size (2.2 -> 4.4).
+      g.scale.setScalar(4.4);
       g.userData.floatStyle = style;
       return g;
     }
@@ -1653,7 +1656,8 @@
 
     // Visibility: the 2.1m rod reads as a thin line at pool distance.
     // Enlarge the whole rod so it is clearly present in the frame.
-    rodParts.scale.setScalar(1.5);
+    // 2026-10-28 Louis: double again from the gear-v1 size (1.5 -> 3.0).
+    rodParts.scale.setScalar(3.0);
     rodParts.rotation.z = Math.PI / 2.15;
     rodParts.rotation.y = -0.32;
     rodParts.position.set(0.95, deckTop + 0.34, 7.90);
@@ -1696,6 +1700,8 @@
     rest.add(uPad);
     rest.position.set(0.35, deckTop + 0.02, 7.73);
     rest.rotation.y = 0.08;
+    // 2026-10-28 Louis: double the whole stand from the real 13cm size.
+    rest.scale.setScalar(2);
     scene.add(rest);
 
     addSeatTackle(deckTop);
