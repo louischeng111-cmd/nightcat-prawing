@@ -1,4 +1,4 @@
-import { OfficeScene } from './office.js';
+import { OfficeScene } from './office.js?v=20261030d';
 import { Simulation } from './simulation.js';
 import { HUD } from './hud.js';
 
