@@ -719,9 +719,9 @@ export class OfficeScene {
 
   _buildLounge() {
     // green circular rug + larger L sofa (~1.4×) — middle of EMPTY plaza
-    // Louis: 向左下移 → −X +Z (iso left-down); desks stay −4/−1.2
-    const cx = -3.5;
-    const cz = 3.2;
+    // Louis: 再左下 → same step −X +Z; desks stay −4/−1.2
+    const cx = -5.0;
+    const cz = 4.4;
     this.loungeCenter = new THREE.Vector3(cx, 0, cz);
 
     const SOFA_SCALE = 1.4;
