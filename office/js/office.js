@@ -719,9 +719,10 @@ export class OfficeScene {
 
   _buildLounge() {
     // green circular rug + larger L sofa (~1.4×) — middle of EMPTY plaza
-    // QA11 (-4.0,2.5) closer but left-gap still bigger → -4.25; desks at -5/-2.8
-    const cx = -4.25;
-    const cz = 2.5;
+    // Louis red circle: aisle BETWEEN old lounge and desk cluster (not left of that gap)
+    // desks front z=-2.8 pads→~-1.9; keep rug clear → cz≥0.8; shift +X into circled aisle
+    const cx = -2.0;
+    const cz = 0.8;
     this.loungeCenter = new THREE.Vector3(cx, 0, cz);
 
     const SOFA_SCALE = 1.4;
