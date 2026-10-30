@@ -22,6 +22,60 @@ function mesh(geo, color, opts = {}) {
   return m;
 }
 
+/** Low-poly motor-yacht hull. +X bow, Y up, Z beam. */
+function makeYachtHullGeometry() {
+  const rings = [
+    [-2.05, 0.02, 0.12, 0.4, 0.34, 0.46],
+    [-0.65, -0.08, 0.06, 0.38, 0.5, 0.58],
+    [0.55, -0.05, 0.08, 0.4, 0.46, 0.54],
+    [1.4, 0.06, 0.18, 0.42, 0.24, 0.3],
+    [2.15, 0.22, 0.3, 0.4, 0.02, 0.03],
+  ];
+  const positions = [];
+  const indices = [];
+  const bases = [];
+  for (const [x, yk, yc, yg, zc, zg] of rings) {
+    bases.push(positions.length / 3);
+    for (const p of [
+      [x, yk, 0],
+      [x, yc, -zc],
+      [x, yg, -zg],
+      [x, yg, zg],
+      [x, yc, zc],
+    ]) {
+      positions.push(p[0], p[1], p[2]);
+    }
+  }
+  const n = 5;
+  for (let r = 0; r < rings.length - 1; r++) {
+    const a = bases[r];
+    const b = bases[r + 1];
+    for (let i = 0; i < n; i++) {
+      const i2 = (i + 1) % n;
+      indices.push(a + i, b + i, b + i2, a + i, b + i2, a + i2);
+    }
+  }
+  const cap = (b, flip) => {
+    const fan = [
+      [0, 1, 2],
+      [0, 2, 3],
+      [0, 3, 4],
+    ];
+    for (const [i, j, k] of fan) {
+      if (flip) indices.push(b + i, b + k, b + j);
+      else indices.push(b + i, b + j, b + k);
+    }
+  };
+  cap(bases[0], true);
+  cap(bases[bases.length - 1], false);
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
+
 function makeBoardTexture(title, lines, opts = {}) {
   const w = opts.w || 512;
   const h = opts.h || 320;
@@ -125,6 +179,7 @@ export class OfficeScene {
     this._lights();
     this._buildIsland();
     this._buildOcean();
+    this._buildPier();
     this._buildRoom();
     this._buildDesks();
     this._buildBossRoom();
@@ -174,31 +229,6 @@ export class OfficeScene {
     );
     sand.position.y = -0.4;
     island.add(sand);
-
-    // rock rim ring (torus-ish via torus + scattered rocks)
-    const rim = mesh(
-      new THREE.TorusGeometry(15.2, 0.55, 8, 48),
-      0x8a8070,
-      { roughness: 0.92, cast: false, flat: true }
-    );
-    rim.rotation.x = Math.PI / 2;
-    rim.position.y = -0.15;
-    island.add(rim);
-
-    // scattered rocks around shore
-    for (let i = 0; i < 28; i++) {
-      const ang = (i / 28) * Math.PI * 2 + (Math.random() - 0.5) * 0.2;
-      const r = 14.2 + Math.random() * 1.8;
-      const s = 0.25 + Math.random() * 0.55;
-      const rock = mesh(
-        new THREE.DodecahedronGeometry(s, 0),
-        Math.random() > 0.5 ? 0x7a7468 : 0x958a78,
-        { roughness: 0.95, cast: false, flat: true }
-      );
-      rock.position.set(Math.cos(ang) * r, -0.05 + s * 0.2, Math.sin(ang) * r);
-      rock.rotation.set(Math.random(), Math.random(), Math.random());
-      island.add(rock);
-    }
 
     // small beach patches near corners
     [[-11, -8], [11, -7], [-10, 8], [12, 7]].forEach(([x, z]) => {
@@ -306,6 +336,221 @@ export class OfficeScene {
     );
     this.celestial.position.set(8, 7.5, -22);
     this.scene.add(this.celestial);
+  }
+
+  /**
+   * Wooden pier on the near shore (open front, toward the default camera at +X/+Z).
+   * Heading is past 45° so the dock stays in the foreground water and clears the
+   * shore palm near (11.5, 10.5). Aquarium rocks are a separate mesh and stay.
+   */
+  _buildPier() {
+    const heading = (58 * Math.PI) / 180;
+    const dirX = Math.cos(heading);
+    const dirZ = Math.sin(heading);
+    const shoreR = 10.9;
+
+    const pier = new THREE.Group();
+    pier.position.set(dirX * shoreR, 0, dirZ * shoreR);
+    // local +Z runs seaward, toward the camera
+    pier.rotation.y = Math.atan2(dirX, dirZ);
+
+    const wood = 0xc9956a;
+    const woodAlt = 0xd7ae78;
+    const woodDark = 0x8d6240;
+    const deckY = 0.0;
+    const deckT = 0.11;
+    const approachW = 1.8;
+    const approachL = 3.7;
+    const headW = 3.35;
+    const headD = 1.42;
+    const headZ0 = 3.55;
+
+    this._addPlankRun(pier, {
+      width: approachW,
+      length: approachL,
+      z0: 0,
+      y: deckY,
+      thickness: deckT,
+      along: 'z',
+      colors: [wood, woodAlt],
+    });
+    this._addPlankRun(pier, {
+      width: headW,
+      length: headD,
+      z0: headZ0,
+      y: deckY + 0.012,
+      thickness: deckT,
+      along: 'x',
+      colors: [woodAlt, wood],
+    });
+
+    for (const sx of [-approachW / 2 + 0.07, approachW / 2 - 0.07]) {
+      const beam = mesh(new THREE.BoxGeometry(0.1, 0.14, approachL + 0.15), woodDark, {
+        roughness: 0.9,
+        flat: true,
+      });
+      beam.position.set(sx, deckY - 0.1, approachL / 2);
+      pier.add(beam);
+    }
+    const headBeam = mesh(new THREE.BoxGeometry(headW, 0.12, 0.1), woodDark, {
+      roughness: 0.9,
+      flat: true,
+    });
+    headBeam.position.set(0, deckY - 0.05, headZ0 + headD - 0.04);
+    pier.add(headBeam);
+
+    const pile = (x, z) => {
+      if (Math.hypot(shoreR + z, x) < 16.05) return;
+      const post = mesh(new THREE.CylinderGeometry(0.07, 0.09, 1.15, 6), 0x6e5138, {
+        roughness: 0.92,
+        flat: true,
+      });
+      post.position.set(x, deckY - 0.62, z);
+      pier.add(post);
+    };
+    const headOuterZ = headZ0 + headD;
+    for (const x of [-headW / 2 + 0.22, headW / 2 - 0.22]) {
+      pile(x, headZ0 + 0.32);
+      pile(x, headOuterZ - 0.2);
+    }
+    pile(-approachW / 2 + 0.22, approachL - 0.2);
+    pile(approachW / 2 - 0.22, approachL - 0.2);
+
+    for (const bx of [-0.9, 0.9]) {
+      const bollard = mesh(new THREE.CylinderGeometry(0.055, 0.07, 0.32, 8), 0x5c4638, {
+        flat: true,
+        roughness: 0.8,
+      });
+      bollard.position.set(bx, deckY + deckT / 2 + 0.16, headOuterZ - 0.16);
+      pier.add(bollard);
+      const cap = mesh(new THREE.SphereGeometry(0.065, 8, 6), 0x5c4638, { flat: true });
+      cap.position.set(bx, deckY + deckT / 2 + 0.33, headOuterZ - 0.16);
+      pier.add(cap);
+    }
+
+    this._addDockedYacht(pier, headOuterZ);
+    this.scene.add(pier);
+  }
+
+  _addPlankRun(parent, opts) {
+    const { width, length, z0, y, thickness, along, colors } = opts;
+    const n = along === 'z' ? 11 : 9;
+    const gap = 0.032;
+    const run = along === 'z' ? length : width;
+    const span = (run - gap * (n - 1)) / n;
+    for (let i = 0; i < n; i++) {
+      const color = colors[i % colors.length];
+      const plank = mesh(
+        new THREE.BoxGeometry(along === 'z' ? width : span, thickness, along === 'z' ? span : length),
+        color,
+        { roughness: 0.88, flat: true }
+      );
+      if (along === 'z') {
+        plank.position.set(0, y, z0 + span / 2 + i * (span + gap));
+      } else {
+        plank.position.set(-width / 2 + span / 2 + i * (span + gap), y, z0 + length / 2);
+      }
+      parent.add(plank);
+    }
+  }
+
+  _addDockedYacht(pier, berthZ) {
+    const halfBeam = 0.58;
+    const yachtScale = 1.2;
+    const yacht = new THREE.Group();
+    // Seaward of the T-head, long axis across the view (local X).
+    yacht.position.set(0, -0.58, berthZ + 0.14 + halfBeam * yachtScale);
+    yacht.scale.setScalar(yachtScale);
+
+    const hull = new THREE.Mesh(
+      makeYachtHullGeometry(),
+      new THREE.MeshStandardMaterial({
+        color: 0xf4f0e6,
+        roughness: 0.56,
+        metalness: 0.05,
+        flatShading: true,
+        side: THREE.DoubleSide,
+      })
+    );
+    hull.castShadow = true;
+    hull.receiveShadow = true;
+    yacht.add(hull);
+
+    const stripe = mesh(new THREE.BoxGeometry(2.15, 0.07, 1.2), 0x1b3044, {
+      roughness: 0.4,
+      metalness: 0.12,
+      flat: true,
+    });
+    stripe.position.set(-0.2, 0.14, 0);
+    yacht.add(stripe);
+
+    const teak = 0xc4925c;
+    const deckAft = mesh(new THREE.BoxGeometry(0.9, 0.05, 0.78), teak, { roughness: 0.84, flat: true });
+    deckAft.position.set(-1.35, 0.4, 0);
+    yacht.add(deckAft);
+    const deckFore = mesh(new THREE.BoxGeometry(0.7, 0.05, 0.52), teak, { roughness: 0.84, flat: true });
+    deckFore.position.set(0.82, 0.41, 0);
+    yacht.add(deckFore);
+
+    const cream = 0xfbf8f2;
+    const cabin = mesh(new THREE.BoxGeometry(1.4, 0.48, 0.92), cream, { roughness: 0.42, flat: true });
+    cabin.position.set(-0.2, 0.66, 0);
+    yacht.add(cabin);
+    const roof = mesh(new THREE.BoxGeometry(1.55, 0.06, 1.02), 0xf7f4ee, { roughness: 0.35, flat: true });
+    roof.position.set(-0.18, 0.92, 0);
+    yacht.add(roof);
+
+    const glass = { roughness: 0.12, metalness: 0.5, flat: true };
+    const sideWin = mesh(new THREE.BoxGeometry(0.95, 0.2, 0.03), 0x15202e, glass);
+    sideWin.position.set(-0.18, 0.68, 0.47);
+    yacht.add(sideWin);
+    const sideWinFar = sideWin.clone();
+    sideWinFar.position.z = -0.47;
+    yacht.add(sideWinFar);
+    const wind = mesh(new THREE.BoxGeometry(0.03, 0.2, 0.62), 0x15202e, glass);
+    wind.position.set(0.52, 0.68, 0);
+    yacht.add(wind);
+
+    const fly = mesh(new THREE.BoxGeometry(0.7, 0.28, 0.72), cream, { roughness: 0.45, flat: true });
+    fly.position.set(-0.35, 1.1, 0);
+    yacht.add(fly);
+    const flyWin = mesh(new THREE.BoxGeometry(0.48, 0.12, 0.03), 0x15202e, glass);
+    flyWin.position.set(-0.32, 1.12, 0.37);
+    yacht.add(flyWin);
+    const flyRoof = mesh(new THREE.BoxGeometry(0.78, 0.05, 0.8), 0xf7f4ee, { roughness: 0.35, flat: true });
+    flyRoof.position.set(-0.32, 1.26, 0);
+    yacht.add(flyRoof);
+
+    const mast = mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.22, 6), 0xd5dbe3, {
+      metalness: 0.55,
+      roughness: 0.28,
+    });
+    mast.position.set(-0.32, 1.4, 0);
+    yacht.add(mast);
+    const dome = mesh(new THREE.SphereGeometry(0.07, 8, 6), 0xe7edf2, { metalness: 0.4, roughness: 0.3 });
+    dome.scale.y = 0.65;
+    dome.position.set(-0.32, 1.52, 0);
+    yacht.add(dome);
+
+    const platform = mesh(new THREE.BoxGeometry(0.36, 0.05, 0.58), 0xe6dfd2, { roughness: 0.7, flat: true });
+    platform.position.set(-2.18, 0.16, 0);
+    yacht.add(platform);
+
+    for (const fx of [-0.65, 0.5]) {
+      const fender = mesh(new THREE.SphereGeometry(0.09, 8, 6), 0x2c3136, { roughness: 0.65 });
+      fender.scale.set(0.72, 1.05, 0.72);
+      fender.position.set(fx, 0.2, -(halfBeam + 0.01));
+      yacht.add(fender);
+    }
+
+    const red = mesh(new THREE.SphereGeometry(0.04, 8, 6), 0xd24a4a, { roughness: 0.4 });
+    red.position.set(0.2, 0.98, -0.48);
+    yacht.add(red);
+    const green = mesh(new THREE.SphereGeometry(0.04, 8, 6), 0x3cba6a, { roughness: 0.4 });
+    green.position.set(0.2, 0.98, 0.48);
+    yacht.add(green);
+
+    pier.add(yacht);
   }
 
   _animateWaves(dt) {
