@@ -7,12 +7,17 @@ const office = new OfficeScene(canvas);
 office.setLighting('day');
 
 const hud = new HUD();
-const sim = new Simulation(office, (snap) => hud.render(snap));
+const sim = new Simulation(office, (snap) => {
+  hud.render(snap);
+  office.refreshBoards(snap);
+});
 hud.render(sim.getSnapshot());
+office.refreshBoards(sim.getSnapshot());
 
 hud.onStop(() => {
   sim.toggle();
   hud.render(sim.getSnapshot());
+  office.refreshBoards(sim.getSnapshot());
 });
 
 hud.onLighting((mode) => {
@@ -24,9 +29,10 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   sim.update(dt);
+  office.update(dt, sim.getSnapshot());
   office.render();
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 
-console.info('[夜貓總部] 虛擬辦公室已載入 · 10 隻唔同品種嘅貓');
+console.info('[夜貓總部] 虛擬辦公室已載入 · 海島四面環海 · 10 隻唔同品種嘅貓');

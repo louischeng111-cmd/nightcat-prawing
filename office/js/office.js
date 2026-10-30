@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { AGENTS } from './agents.js';
 
 const ROOM = { w: 22, d: 16, h: 3.2 };
 
@@ -21,6 +22,56 @@ function mesh(geo, color, opts = {}) {
   return m;
 }
 
+function makeBoardTexture(title, lines, opts = {}) {
+  const w = opts.w || 512;
+  const h = opts.h || 320;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+
+  // panel bg
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, opts.bgTop || '#1a2238');
+  grad.addColorStop(1, opts.bgBot || '#121828');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  // border
+  ctx.strokeStyle = opts.border || '#7c6cf0';
+  ctx.lineWidth = 8;
+  ctx.strokeRect(6, 6, w - 12, h - 12);
+
+  // accent bar
+  ctx.fillStyle = opts.accent || '#7c6cf0';
+  ctx.fillRect(18, 22, 10, 36);
+
+  ctx.fillStyle = '#f3f4f6';
+  ctx.font = 'bold 28px "Segoe UI", "PingFang HK", "Noto Sans TC", sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(title, 40, 40);
+
+  ctx.font = '20px "Segoe UI", "PingFang HK", "Noto Sans TC", sans-serif';
+  let y = 88;
+  for (const line of lines) {
+    if (typeof line === 'object') {
+      ctx.fillStyle = line.color || '#c8d0e0';
+      ctx.fillText(line.text, 36, y);
+    } else {
+      ctx.fillStyle = '#c8d0e0';
+      ctx.fillText(line, 36, y);
+    }
+    y += 32;
+    if (y > h - 24) break;
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.needsUpdate = true;
+  return tex;
+}
+
 export class OfficeScene {
   constructor(canvas) {
     this.canvas = canvas;
@@ -28,6 +79,9 @@ export class OfficeScene {
     this.waypoints = {};
     this.deskSlots = [];
     this.labelSprites = [];
+    this._waveTime = 0;
+    this._boardTick = 0;
+    this._lastSnap = null;
 
     this.renderer = new THREE.WebGLRenderer({
       canvas,
@@ -43,8 +97,8 @@ export class OfficeScene {
     this.renderer.toneMappingExposure = 1.1;
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xa9d4f2);
-    this.scene.fog = new THREE.Fog(0xa9d4f2, 28, 55);
+    this.scene.background = new THREE.Color(0x87c8e8);
+    this.scene.fog = new THREE.Fog(0x87c8e8, 36, 72);
 
     const aspect = window.innerWidth / window.innerHeight;
     const frustum = 11;
@@ -54,7 +108,7 @@ export class OfficeScene {
       frustum,
       -frustum,
       0.1,
-      120
+      160
     );
     this.camera.position.set(18, 16, 18);
     this.camera.lookAt(0, 0.5, 0);
@@ -62,36 +116,40 @@ export class OfficeScene {
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
     this.controls.target.set(0, 0.4, 0);
-    this.controls.minZoom = 0.55;
+    this.controls.minZoom = 0.45;
     this.controls.maxZoom = 2.8;
     this.controls.maxPolarAngle = Math.PI / 2.15;
     this.controls.minPolarAngle = 0.35;
     this.controls.screenSpacePanning = true;
 
     this._lights();
+    this._buildIsland();
+    this._buildOcean();
     this._buildRoom();
     this._buildDesks();
     this._buildBossRoom();
     this._buildLounge();
     this._buildKitchen();
     this._buildPlants();
+    this._buildCatToys();
+    this._buildInfoBoards();
     this._buildWaypoints();
 
     window.addEventListener('resize', () => this.onResize());
   }
 
   _lights() {
-    this.hemi = new THREE.HemisphereLight(0xfff8ee, 0x8a7a66, 1.05);
+    this.hemi = new THREE.HemisphereLight(0xfff8ee, 0x4a7a88, 1.05);
     this.scene.add(this.hemi);
 
     this.sun = new THREE.DirectionalLight(0xfff2d6, 1.55);
     this.sun.position.set(12, 18, 8);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(2048, 2048);
-    this.sun.shadow.camera.left = -20;
-    this.sun.shadow.camera.right = 20;
-    this.sun.shadow.camera.top = 20;
-    this.sun.shadow.camera.bottom = -20;
+    this.sun.shadow.camera.left = -28;
+    this.sun.shadow.camera.right = 28;
+    this.sun.shadow.camera.top = 28;
+    this.sun.shadow.camera.bottom = -28;
     this.sun.shadow.bias = -0.0002;
     this.scene.add(this.sun);
 
@@ -102,6 +160,149 @@ export class OfficeScene {
     this.lamp = new THREE.PointLight(0xffd9a0, 0.0, 18, 2);
     this.lamp.position.set(0, 2.4, 0);
     this.scene.add(this.lamp);
+  }
+
+  _buildIsland() {
+    const island = new THREE.Group();
+    this.island = island;
+
+    // sand base under office (slightly larger than room)
+    const sand = mesh(
+      new THREE.CylinderGeometry(15.5, 16.8, 0.55, 48),
+      0xe8d4a8,
+      { roughness: 0.95, cast: false }
+    );
+    sand.position.y = -0.4;
+    island.add(sand);
+
+    // rock rim ring (torus-ish via torus + scattered rocks)
+    const rim = mesh(
+      new THREE.TorusGeometry(15.2, 0.55, 8, 48),
+      0x8a8070,
+      { roughness: 0.92, cast: false, flat: true }
+    );
+    rim.rotation.x = Math.PI / 2;
+    rim.position.y = -0.15;
+    island.add(rim);
+
+    // scattered rocks around shore
+    for (let i = 0; i < 28; i++) {
+      const ang = (i / 28) * Math.PI * 2 + (Math.random() - 0.5) * 0.2;
+      const r = 14.2 + Math.random() * 1.8;
+      const s = 0.25 + Math.random() * 0.55;
+      const rock = mesh(
+        new THREE.DodecahedronGeometry(s, 0),
+        Math.random() > 0.5 ? 0x7a7468 : 0x958a78,
+        { roughness: 0.95, cast: false, flat: true }
+      );
+      rock.position.set(Math.cos(ang) * r, -0.05 + s * 0.2, Math.sin(ang) * r);
+      rock.rotation.set(Math.random(), Math.random(), Math.random());
+      island.add(rock);
+    }
+
+    // small beach patches near corners
+    [[-11, -8], [11, -7], [-10, 8], [12, 7]].forEach(([x, z]) => {
+      const patch = mesh(
+        new THREE.CylinderGeometry(1.4, 1.6, 0.12, 10),
+        0xf0e0b8,
+        { cast: false, roughness: 1 }
+      );
+      patch.position.set(x, -0.12, z);
+      island.add(patch);
+    });
+
+    // a few palm-ish trees on island edge (simple)
+    [[-13.5, -3], [13.2, 2], [-12, 9], [10, -10]].forEach(([x, z]) => {
+      const trunk = mesh(new THREE.CylinderGeometry(0.12, 0.18, 1.8, 6), 0x8b5a2b, { cast: false, flat: true });
+      trunk.position.set(x, 0.7, z);
+      island.add(trunk);
+      for (let k = 0; k < 5; k++) {
+        const leaf = mesh(
+          new THREE.BoxGeometry(1.4, 0.08, 0.35),
+          0x2f8f4e,
+          { cast: false, flat: true }
+        );
+        leaf.position.set(x, 1.55, z);
+        leaf.rotation.y = (k / 5) * Math.PI * 2;
+        leaf.rotation.z = 0.45;
+        island.add(leaf);
+      }
+    });
+
+    this.scene.add(island);
+  }
+
+  _buildOcean() {
+    // large water plane with vertex waves
+    const segs = 48;
+    const size = 90;
+    const geo = new THREE.PlaneGeometry(size, size, segs, segs);
+    geo.rotateX(-Math.PI / 2);
+
+    const pos = geo.attributes.position;
+    this._waveBase = new Float32Array(pos.count * 3);
+    for (let i = 0; i < pos.count; i++) {
+      this._waveBase[i * 3] = pos.getX(i);
+      this._waveBase[i * 3 + 1] = pos.getY(i);
+      this._waveBase[i * 3 + 2] = pos.getZ(i);
+    }
+
+    const waterMat = new THREE.MeshStandardMaterial({
+      color: 0x2a8fc4,
+      roughness: 0.35,
+      metalness: 0.15,
+      transparent: true,
+      opacity: 0.88,
+      flatShading: true,
+    });
+    this.water = new THREE.Mesh(geo, waterMat);
+    this.water.position.y = -0.55;
+    this.water.receiveShadow = true;
+    this.water.castShadow = false;
+    this.scene.add(this.water);
+
+    // deeper ocean disc under for color depth
+    const deep = mesh(
+      new THREE.CylinderGeometry(48, 48, 0.2, 32),
+      0x1a5f8a,
+      { cast: false, receive: false, roughness: 1 }
+    );
+    deep.position.y = -0.85;
+    this.scene.add(deep);
+
+    // sun/moon disc over the sea (no city)
+    this.celestial = mesh(
+      new THREE.SphereGeometry(0.85, 16, 12),
+      0xffe08a,
+      { cast: false, receive: false, roughness: 0.4 }
+    );
+    this.celestial.position.set(8, 7.5, -22);
+    this.scene.add(this.celestial);
+  }
+
+  _animateWaves(dt) {
+    if (!this.water) return;
+    this._waveTime += dt;
+    this._waveFrame = (this._waveFrame || 0) + 1;
+    const t = this._waveTime;
+    const pos = this.water.geometry.attributes.position;
+    const base = this._waveBase;
+    for (let i = 0; i < pos.count; i++) {
+      const x = base[i * 3];
+      const z = base[i * 3 + 2];
+      // quiet under island; fade near shore
+      const r2 = x * x + z * z;
+      let amp = 0.12;
+      if (r2 < 256) amp *= Math.max(0, (Math.sqrt(r2) - 14) / 2);
+      const y =
+        Math.sin(x * 0.35 + t * 1.6) * amp +
+        Math.cos(z * 0.28 + t * 1.2) * amp * 0.7 +
+        Math.sin((x + z) * 0.18 + t * 0.9) * amp * 0.45;
+      pos.setY(i, base[i * 3 + 1] + y);
+    }
+    pos.needsUpdate = true;
+    // normals every other frame — enough for flatShading iso look
+    if (this._waveFrame % 2 === 0) this.water.geometry.computeVertexNormals();
   }
 
   _buildRoom() {
@@ -136,61 +337,207 @@ export class OfficeScene {
     left.position.set(-ROOM.w / 2, ROOM.h / 2, 0);
     this.scene.add(left);
 
-    // window panes on back wall
-    for (let i = 0; i < 4; i++) {
+    // window panes on back wall — look out to sea
+    for (let i = 0; i < 3; i++) {
       const frame = mesh(new THREE.BoxGeometry(3.2, 2.0, 0.08), 0xf5f5f5, { cast: false });
-      frame.position.set(-7 + i * 4.5, 1.7, -ROOM.d / 2 + 0.12);
+      frame.position.set(-8.2 + i * 4.2, 1.7, -ROOM.d / 2 + 0.12);
       this.scene.add(frame);
       const glass = mesh(
         new THREE.BoxGeometry(2.9, 1.7, 0.04),
-        0x9ec9ef,
-        { transparent: true, opacity: 0.35, metalness: 0.2, roughness: 0.2, cast: false }
+        0x7ec8ef,
+        { transparent: true, opacity: 0.28, metalness: 0.2, roughness: 0.2, cast: false }
       );
       glass.position.copy(frame.position);
       glass.position.z += 0.04;
       this.scene.add(glass);
     }
+    // (skyline / city buildings removed — ocean island only)
+  }
 
-    // city skyline outside (simple boxes)
-    const skyGroup = new THREE.Group();
-    skyGroup.position.set(0, 0, -ROOM.d / 2 - 2);
-    for (let i = 0; i < 12; i++) {
-      const h = 1.5 + Math.random() * 4;
-      const bldg = mesh(
-        new THREE.BoxGeometry(1.2 + Math.random(), h, 1),
-        0x6a7a90,
-        { cast: false, receive: false }
-      );
-      bldg.position.set(-10 + i * 1.9, h / 2, -1 - Math.random());
-      skyGroup.add(bldg);
-    }
-    this.scene.add(skyGroup);
-    this.skyline = skyGroup;
+  _buildInfoBoards() {
+    this.boardMeshes = [];
 
-    // sun/moon disc
-    this.celestial = mesh(
-      new THREE.SphereGeometry(0.7, 16, 12),
-      0xffe08a,
-      { cast: false, receive: false, roughness: 0.4 }
+    // Board A: team roster (right side of back wall)
+    const rosterLines = AGENTS.slice(0, 8).map((a) => ({
+      text: `${a.name} · ${a.breed}`,
+      color: a.color,
+    }));
+    const rosterTex = makeBoardTexture('夜貓總部 · 貓員名單', [
+      { text: '10 隻唔同品種 · 海島辦公', color: '#a78bfa' },
+      ...rosterLines.slice(0, 6),
+    ], { w: 512, h: 360, accent: '#7c6cf0' });
+
+    const boardA = new THREE.Mesh(
+      new THREE.PlaneGeometry(3.4, 2.2),
+      new THREE.MeshBasicMaterial({ map: rosterTex, toneMapped: false })
     );
-    this.celestial.position.set(6, 5.5, -ROOM.d / 2 - 3);
-    this.scene.add(this.celestial);
+    boardA.position.set(7.2, 1.75, -ROOM.d / 2 + 0.2);
+    this.scene.add(boardA);
+    // frame
+    const frameA = mesh(new THREE.BoxGeometry(3.55, 2.35, 0.06), 0x2a2a32, { cast: false });
+    frameA.position.set(7.2, 1.75, -ROOM.d / 2 + 0.16);
+    this.scene.add(frameA);
+    this.boardMeshes.push({ mesh: boardA, kind: 'roster' });
 
-    // wall screen
-    const screen = mesh(new THREE.BoxGeometry(3.6, 1.8, 0.08), 0x1a2233, { cast: false });
-    screen.position.set(7.5, 1.8, -ROOM.d / 2 + 0.15);
-    this.scene.add(screen);
-    const chart = mesh(new THREE.BoxGeometry(3.2, 1.4, 0.04), 0x243048, { cast: false });
-    chart.position.copy(screen.position);
-    chart.position.z += 0.05;
-    this.scene.add(chart);
-    // fake chart bars
-    for (let i = 0; i < 8; i++) {
-      const bh = 0.2 + Math.random() * 0.9;
-      const bar = mesh(new THREE.BoxGeometry(0.25, bh, 0.05), i % 2 ? 0x7c6cf0 : 0x22a874, { cast: false });
-      bar.position.set(6.2 + i * 0.35, 1.2 + bh / 2, -ROOM.d / 2 + 0.22);
-      this.scene.add(bar);
+    // Board B: live status / activity (left wall)
+    const statusTex = makeBoardTexture('今日狀態看板', [
+      { text: '模擬運行中…', color: '#7c6cf0' },
+      '諗緊 / 開工 / 要你 / 完成 / 收工',
+      '望窗：四面環海 · 海島總部',
+      '玩嘢：貓爪板 · 毛線球 · 紙箱',
+      '提示：撳 HUD 可停模擬／換燈光',
+    ], { w: 512, h: 320, accent: '#22a874', border: '#22a874', bgTop: '#14241c', bgBot: '#0c1812' });
+
+    const boardB = new THREE.Mesh(
+      new THREE.PlaneGeometry(2.8, 1.75),
+      new THREE.MeshBasicMaterial({ map: statusTex, toneMapped: false })
+    );
+    boardB.position.set(-ROOM.w / 2 + 0.2, 1.7, -2.5);
+    boardB.rotation.y = Math.PI / 2;
+    this.scene.add(boardB);
+    const frameB = mesh(new THREE.BoxGeometry(0.06, 1.9, 2.95), 0x2a2a32, { cast: false });
+    frameB.position.set(-ROOM.w / 2 + 0.16, 1.7, -2.5);
+    this.scene.add(frameB);
+    this.boardMeshes.push({ mesh: boardB, kind: 'status' });
+
+    // Board C: breed map / hints near kitchen
+    const breedLines = AGENTS.map((a) => `${a.breedKey}: ${a.breed}`);
+    const breedTex = makeBoardTexture('品種地圖 · Breed Map', [
+      { text: '每隻貓＝一個 bot', color: '#e8c547' },
+      ...breedLines.slice(0, 6).map((t) => ({ text: t, color: '#c8d0e0' })),
+    ], { w: 512, h: 340, accent: '#e09412', border: '#e09412', bgTop: '#2a2010', bgBot: '#181208' });
+
+    const boardC = new THREE.Mesh(
+      new THREE.PlaneGeometry(2.6, 1.7),
+      new THREE.MeshBasicMaterial({ map: breedTex, toneMapped: false })
+    );
+    boardC.position.set(-3.5, 1.7, -ROOM.d / 2 + 0.2);
+    this.scene.add(boardC);
+    const frameC = mesh(new THREE.BoxGeometry(2.75, 1.85, 0.06), 0x2a2a32, { cast: false });
+    frameC.position.set(-3.5, 1.7, -ROOM.d / 2 + 0.16);
+    this.scene.add(frameC);
+    this.boardMeshes.push({ mesh: boardC, kind: 'breed' });
+  }
+
+  /** Optional: refresh status board from sim snapshot */
+  refreshBoards(snapshot) {
+    if (!snapshot || !this.boardMeshes) return;
+    this._lastSnap = snapshot;
+    const statusBoard = this.boardMeshes.find((b) => b.kind === 'status');
+    if (!statusBoard) return;
+
+    const c = snapshot.counts || {};
+    const agents = snapshot.agents || [];
+    const working = agents.filter((a) => a.status === 'running' || a.status === 'thinking').slice(0, 2);
+    const waiting = agents.filter((a) => a.status === 'waiting').slice(0, 2);
+
+    const lines = [
+      { text: snapshot.running ? '● 模擬運行中' : '■ 已暫停', color: snapshot.running ? '#22a874' : '#e09412' },
+      { text: `開工/諗緊 ${c.working ?? 0} · 要你 ${c.waiting ?? 0}`, color: '#c8d0e0' },
+      { text: `收工 ${c.idle ?? 0} · 空枱 ${c.free ?? 0}`, color: '#c8d0e0' },
+    ];
+    if (working[0]) lines.push({ text: `忙碌：${working[0].name}`, color: '#3b8ee0' });
+    if (waiting[0]) lines.push({ text: `等你：${waiting[0].name}`, color: '#e09412' });
+    lines.push({ text: '海島總部 · 四面環海', color: '#7ec8ef' });
+
+    const tex = makeBoardTexture('今日狀態看板', lines, {
+      w: 512, h: 320, accent: '#22a874', border: '#22a874', bgTop: '#14241c', bgBot: '#0c1812',
+    });
+    const old = statusBoard.mesh.material.map;
+    statusBoard.mesh.material.map = tex;
+    statusBoard.mesh.material.needsUpdate = true;
+    if (old) old.dispose();
+  }
+
+  _buildCatToys() {
+    const toys = new THREE.Group();
+    this.catToys = toys;
+
+    // --- 貓爪板 / scratching post near lounge ---
+    const post = new THREE.Group();
+    const pole = mesh(new THREE.CylinderGeometry(0.12, 0.14, 1.35, 10), 0xc4a882, { roughness: 0.95 });
+    pole.position.y = 0.7;
+    post.add(pole);
+    // sisal wrap bands
+    for (let i = 0; i < 6; i++) {
+      const band = mesh(
+        new THREE.TorusGeometry(0.145, 0.025, 6, 16),
+        0xb8956a,
+        { cast: false, roughness: 1 }
+      );
+      band.rotation.x = Math.PI / 2;
+      band.position.y = 0.25 + i * 0.2;
+      post.add(band);
     }
+    const base = mesh(new THREE.CylinderGeometry(0.45, 0.5, 0.1, 16), 0x5a5048, { cast: false });
+    base.position.y = 0.05;
+    post.add(base);
+    const platform = mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.08, 12), 0x6b5a4a);
+    platform.position.y = 1.4;
+    post.add(platform);
+    // hanging toy on post
+    const string = mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.45, 4), 0xdddddd, { cast: false });
+    string.position.set(0.25, 1.15, 0);
+    post.add(string);
+    const feather = mesh(new THREE.SphereGeometry(0.08, 8, 6), 0xe74c3c, { flat: true });
+    feather.position.set(0.25, 0.9, 0);
+    post.add(feather);
+    post.position.set(-8.8, 0, 3.2);
+    toys.add(post);
+
+    // --- yarn / 毛線球 near rug ---
+    const yarn = mesh(new THREE.SphereGeometry(0.18, 12, 10), 0xe8a0c8, { roughness: 0.9 });
+    yarn.position.set(-5.2, 0.18, 4.4);
+    toys.add(yarn);
+    const yarn2 = mesh(new THREE.SphereGeometry(0.12, 10, 8), 0x7c6cf0, { roughness: 0.9 });
+    yarn2.position.set(-4.85, 0.12, 4.7);
+    toys.add(yarn2);
+    // loose string trail
+    const trailPts = [
+      new THREE.Vector3(-5.2, 0.05, 4.4),
+      new THREE.Vector3(-4.6, 0.04, 4.9),
+      new THREE.Vector3(-4.1, 0.04, 5.3),
+      new THREE.Vector3(-3.7, 0.04, 5.0),
+    ];
+    const trail = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(trailPts),
+      new THREE.LineBasicMaterial({ color: 0xe8a0c8 })
+    );
+    toys.add(trail);
+
+    // --- cardboard box (cat classic) near wander zone ---
+    const box = new THREE.Group();
+    const boxBody = mesh(new THREE.BoxGeometry(0.9, 0.55, 0.7), 0xc4a574, { roughness: 0.95 });
+    boxBody.position.y = 0.28;
+    box.add(boxBody);
+    // open top flaps
+    const flap1 = mesh(new THREE.BoxGeometry(0.9, 0.04, 0.35), 0xb89560, { cast: false });
+    flap1.position.set(0, 0.58, -0.28);
+    flap1.rotation.x = -0.6;
+    box.add(flap1);
+    const flap2 = mesh(new THREE.BoxGeometry(0.9, 0.04, 0.35), 0xb89560, { cast: false });
+    flap2.position.set(0, 0.58, 0.28);
+    flap2.rotation.x = 0.55;
+    box.add(flap2);
+    // cutout hole hint
+    const hole = mesh(
+      new THREE.CircleGeometry(0.18, 12),
+      0x3a2e22,
+      { cast: false, receive: false, side: THREE.DoubleSide }
+    );
+    hole.position.set(0.46, 0.3, 0);
+    hole.rotation.y = Math.PI / 2;
+    box.add(hole);
+    box.position.set(3.8, 0, 2.8);
+    box.rotation.y = 0.35;
+    toys.add(box);
+
+    // --- small jingle ball near desks ---
+    const jingle = mesh(new THREE.SphereGeometry(0.1, 10, 8), 0xf0c040, { metalness: 0.3, roughness: 0.4 });
+    jingle.position.set(-2.2, 0.1, -0.5);
+    toys.add(jingle);
+
+    this.scene.add(toys);
   }
 
   _buildDesks() {
@@ -419,37 +766,40 @@ export class OfficeScene {
     }
     const presets = {
       day: {
-        bg: 0xa9d4f2,
-        fog: 0xa9d4f2,
+        bg: 0x87c8e8,
+        fog: 0x87c8e8,
         sun: 1.55,
         sunColor: 0xfff2d6,
         hemi: 1.05,
         lamp: 0,
         celestial: 0xffe08a,
-        celY: 5.5,
+        celY: 7.5,
         exposure: 1.1,
+        water: 0x2a8fc4,
       },
       evening: {
-        bg: 0xf0a679,
-        fog: 0xf0a679,
+        bg: 0xe89868,
+        fog: 0xe89868,
         sun: 1.0,
         sunColor: 0xffb070,
         hemi: 0.75,
         lamp: 0.55,
         celestial: 0xff9955,
-        celY: 3.8,
+        celY: 4.2,
         exposure: 1.0,
+        water: 0x3a6a8a,
       },
       night: {
-        bg: 0x1d2747,
-        fog: 0x1d2747,
+        bg: 0x152038,
+        fog: 0x152038,
         sun: 0.35,
         sunColor: 0xa0b4ff,
         hemi: 0.55,
         lamp: 1.2,
         celestial: 0xe8eef8,
-        celY: 5.2,
+        celY: 6.8,
         exposure: 0.95,
+        water: 0x143a58,
       },
     };
     const p = presets[mode] || presets.day;
@@ -462,6 +812,22 @@ export class OfficeScene {
     this.celestial.material.color.set(p.celestial);
     this.celestial.position.y = p.celY;
     this.renderer.toneMappingExposure = p.exposure;
+    if (this.water && this.water.material) {
+      this.water.material.color.set(p.water);
+    }
+  }
+
+  update(dt, snapshot) {
+    this._animateWaves(dt);
+    this._boardTick += dt;
+    if (snapshot) {
+      this._lastSnap = snapshot;
+    }
+    // refresh status board every ~2.5s when we have a snap
+    if (this._lastSnap && this._boardTick > 2.5) {
+      this._boardTick = 0;
+      this.refreshBoards(this._lastSnap);
+    }
   }
 
   onResize() {
