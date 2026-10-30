@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>夜貓總部 · 虛擬辦公室</title>
+  <link rel="stylesheet" href="./css/styles.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <canvas id="office-canvas"></canvas>
+
+    <header class="top-bar">
+      <div class="brand">
+        <span class="brand-mark">🐱</span>
+        <div>
+          <h1>夜貓總部 · 虛擬辦公室</h1>
+          <span class="sim-tag">模擬中</span>
+        </div>
+      </div>
+      <div class="counters" id="counters">
+        <span data-k="working"><b>0</b> 開工</span>
+        <span data-k="waiting"><b>0</b> 要你</span>
+        <span data-k="idle"><b>0</b> 收工</span>
+        <span data-k="free"><b>0</b> 空位</span>
+      </div>
+    </header>
+
+    <aside class="side-panel">
+      <h2>團隊狀態</h2>
+      <ul id="team-list" class="team-list"></ul>
+      <h2>活動紀錄</h2>
+      <ul id="activity-log" class="activity-log"></ul>
+    </aside>
+
+    <footer class="bottom-bar">
+      <div class="legend" id="legend"></div>
+      <div class="lighting">
+        <button type="button" data-light="day" class="active">白天</button>
+        <button type="button" data-light="evening">黃昏</button>
+        <button type="button" data-light="night">夜晚</button>
+      </div>
+      <button type="button" id="btn-stop" class="stop-btn">停止模擬</button>
+    </footer>
+  </div>
+
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
