@@ -587,8 +587,8 @@ export class OfficeScene {
       0xde4b40, 0x4ecb71, 0xe8c547, 0x7c6cf0,
     ];
     const positions = [
-      [-7.5, -4.0], [-4.5, -4.0], [-1.5, -4.0], [1.5, -4.0],
-      [-7.5, -1.2], [-4.5, -1.2], [-1.5, -1.2], [1.5, -1.2],
+      [-7.5, -5.0], [-4.5, -5.0], [-1.5, -5.0], [1.5, -5.0],
+      [-7.5, -2.8], [-4.5, -2.8], [-1.5, -2.8], [1.5, -2.8],
     ];
 
     positions.forEach(([x, z], i) => {
@@ -718,14 +718,14 @@ export class OfficeScene {
   }
 
   _buildLounge() {
-    // green circular rug + larger L sofa (~1.4×) — open plaza center after desks pulled back
-    // slight −X: clear boss glass (x≥2.75); desks now at z≤-1.2 so cz=1.8 is free
-    const cx = -1.0;
-    const cz = 1.8;
+    // green circular rug + larger L sofa (~1.4×) — middle of EMPTY plaza
+    // QA11 (-4.0,2.5) closer but left-gap still bigger → -4.25; desks at -5/-2.8
+    const cx = -4.25;
+    const cz = 2.5;
     this.loungeCenter = new THREE.Vector3(cx, 0, cz);
 
     const SOFA_SCALE = 1.4;
-    const rugR = 2.1; // keep clear of desk pads / boss glass
+    const rugR = 2.1;
     const rug = mesh(
       new THREE.CylinderGeometry(rugR, rugR, 0.04, 32),
       0x3d8f5a,
@@ -735,31 +735,31 @@ export class OfficeScene {
     this.scene.add(rug);
 
     const sofaMat = 0x6b7280;
-    // long seat (along −X) — offsets relative to prior loungeCenter
+    // long seat along +X (toward room center); back faces −Z (toward desks)
     const seatLen = 2.4 * SOFA_SCALE;
     const seatDep = 0.85 * SOFA_SCALE;
     const seatH = 0.4;
     const sofaA = mesh(new THREE.BoxGeometry(seatLen, seatH, seatDep), sofaMat);
-    sofaA.position.set(cx - 0.85, seatH / 2 + 0.08, cz - 0.85);
+    sofaA.position.set(cx + 0.85, seatH / 2 + 0.08, cz - 0.85);
     this.scene.add(sofaA);
     const sofaBack = mesh(
       new THREE.BoxGeometry(seatLen, 0.55 * SOFA_SCALE, 0.18 * SOFA_SCALE),
       sofaMat
     );
-    sofaBack.position.set(cx - 0.85, 0.55 * SOFA_SCALE + 0.08, cz - 0.85 - seatDep / 2 - 0.05);
+    sofaBack.position.set(cx + 0.85, 0.55 * SOFA_SCALE + 0.08, cz - 0.85 - seatDep / 2 - 0.05);
     this.scene.add(sofaBack);
-    // chaise / return (along +Z)
+    // chaise / return toward −X (open plaza / left wall), along +Z
     const chaiseLen = 1.8 * SOFA_SCALE;
     const chaiseW = 0.85 * SOFA_SCALE;
     const sofaB = mesh(new THREE.BoxGeometry(chaiseW, seatH, chaiseLen), sofaMat);
-    sofaB.position.set(cx + 1.25, seatH / 2 + 0.08, cz + 0.35);
+    sofaB.position.set(cx - 1.25, seatH / 2 + 0.08, cz + 0.35);
     this.scene.add(sofaB);
 
     const coffee = mesh(new THREE.CylinderGeometry(0.55, 0.6, 0.08, 20), 0xd8cfc0);
-    coffee.position.set(cx + 0.3, 0.35, cz + 0.25);
+    coffee.position.set(cx - 0.2, 0.35, cz + 0.25);
     this.scene.add(coffee);
     const cleg = mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.3, 8), 0xb0a898, { cast: false });
-    cleg.position.set(cx + 0.3, 0.16, cz + 0.25);
+    cleg.position.set(cx - 0.2, 0.16, cz + 0.25);
     this.scene.add(cleg);
   }
 
