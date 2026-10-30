@@ -211,22 +211,50 @@ export class OfficeScene {
       island.add(patch);
     });
 
-    // a few palm-ish trees on island edge (simple)
-    [[-13.5, -3], [13.2, 2], [-12, 9], [10, -10]].forEach(([x, z]) => {
-      const trunk = mesh(new THREE.CylinderGeometry(0.12, 0.18, 1.8, 6), 0x8b5a2b, { cast: false, flat: true });
-      trunk.position.set(x, 0.7, z);
+    // coconut palms around island rim (~10) — larger, keep glass office view clear
+    // scale ~1.55× prior (trunk 1.8→2.8, fronds 1.4→2.15)
+    const palmSpots = [
+      [-13.8, -4.2], [-14.2, 2.5], [-12.5, 9.2], [-7.5, 13.5],
+      [3.5, 14.0], [11.5, 10.5], [14.2, 3.0], [13.5, -5.5],
+      [8.5, -12.5], [-4.0, -13.8],
+    ];
+    const PALM_SCALE = 1.55;
+    palmSpots.forEach(([x, z], pi) => {
+      const h = 1.8 * PALM_SCALE;
+      const trunkR0 = 0.12 * PALM_SCALE;
+      const trunkR1 = 0.18 * PALM_SCALE;
+      const trunk = mesh(
+        new THREE.CylinderGeometry(trunkR0, trunkR1, h, 6),
+        0x8b5a2b,
+        { cast: false, flat: true }
+      );
+      trunk.position.set(x, h / 2 - 0.2, z);
+      // slight lean away from office center
+      trunk.rotation.z = Math.cos(pi) * 0.08;
+      trunk.rotation.x = Math.sin(pi) * 0.06;
       island.add(trunk);
-      for (let k = 0; k < 5; k++) {
+      const crownY = h - 0.25;
+      const frondLen = 1.4 * PALM_SCALE;
+      const frondW = 0.35 * PALM_SCALE;
+      for (let k = 0; k < 6; k++) {
         const leaf = mesh(
-          new THREE.BoxGeometry(1.4, 0.08, 0.35),
-          0x2f8f4e,
+          new THREE.BoxGeometry(frondLen, 0.08 * PALM_SCALE, frondW),
+          k % 2 ? 0x2f8f4e : 0x3aa55c,
           { cast: false, flat: true }
         );
-        leaf.position.set(x, 1.55, z);
-        leaf.rotation.y = (k / 5) * Math.PI * 2;
-        leaf.rotation.z = 0.45;
+        leaf.position.set(x, crownY, z);
+        leaf.rotation.y = (k / 6) * Math.PI * 2 + pi * 0.15;
+        leaf.rotation.z = 0.5;
         island.add(leaf);
       }
+      // small coconut cluster
+      const nut = mesh(
+        new THREE.SphereGeometry(0.12 * PALM_SCALE, 6, 5),
+        0x6b4423,
+        { cast: false, flat: true }
+      );
+      nut.position.set(x + 0.15, crownY - 0.25, z);
+      island.add(nut);
     });
 
     this.scene.add(island);
@@ -453,12 +481,32 @@ export class OfficeScene {
     const toys = new THREE.Group();
     this.catToys = toys;
 
-    // --- 貓爪板 / scratching post near lounge ---
+    // 休閒區 — office floor upper-right / NE of open plan (back-right, +X −Z)
+    // clear of desks (≤x1.5), boss glass (+X +Z), kitchen (back center)
+    const LEISURE = { x: 7.6, z: -3.4 };
+    this.leisureCenter = new THREE.Vector3(LEISURE.x, 0, LEISURE.z);
+
+    // floor mat marker for 休閒區
+    const mat = mesh(
+      new THREE.BoxGeometry(4.2, 0.035, 3.4),
+      0xd4a574,
+      { cast: false, roughness: 0.95 }
+    );
+    mat.position.set(LEISURE.x, 0.02, LEISURE.z);
+    toys.add(mat);
+    const matBorder = mesh(
+      new THREE.BoxGeometry(4.35, 0.02, 3.55),
+      0xb8845a,
+      { cast: false, roughness: 1 }
+    );
+    matBorder.position.set(LEISURE.x, 0.012, LEISURE.z);
+    toys.add(matBorder);
+
+    // --- 貓爪板 / scratching post ---
     const post = new THREE.Group();
     const pole = mesh(new THREE.CylinderGeometry(0.12, 0.14, 1.35, 10), 0xc4a882, { roughness: 0.95 });
     pole.position.y = 0.7;
     post.add(pole);
-    // sisal wrap bands
     for (let i = 0; i < 6; i++) {
       const band = mesh(
         new THREE.TorusGeometry(0.145, 0.025, 6, 16),
@@ -475,29 +523,27 @@ export class OfficeScene {
     const platform = mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.08, 12), 0x6b5a4a);
     platform.position.y = 1.4;
     post.add(platform);
-    // hanging toy on post
     const string = mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.45, 4), 0xdddddd, { cast: false });
     string.position.set(0.25, 1.15, 0);
     post.add(string);
     const feather = mesh(new THREE.SphereGeometry(0.08, 8, 6), 0xe74c3c, { flat: true });
     feather.position.set(0.25, 0.9, 0);
     post.add(feather);
-    post.position.set(-8.8, 0, 3.2);
+    post.position.set(LEISURE.x - 1.35, 0, LEISURE.z + 0.55); // ~ (6.25, -2.85)
     toys.add(post);
 
-    // --- yarn / 毛線球 near rug ---
+    // --- yarn / 毛線球 ---
     const yarn = mesh(new THREE.SphereGeometry(0.18, 12, 10), 0xe8a0c8, { roughness: 0.9 });
-    yarn.position.set(-5.2, 0.18, 4.4);
+    yarn.position.set(LEISURE.x - 0.15, 0.18, LEISURE.z - 0.85); // ~ (7.45, -4.25)
     toys.add(yarn);
     const yarn2 = mesh(new THREE.SphereGeometry(0.12, 10, 8), 0x7c6cf0, { roughness: 0.9 });
-    yarn2.position.set(-4.85, 0.12, 4.7);
+    yarn2.position.set(LEISURE.x + 0.25, 0.12, LEISURE.z - 0.55); // ~ (7.85, -3.95)
     toys.add(yarn2);
-    // loose string trail
     const trailPts = [
-      new THREE.Vector3(-5.2, 0.05, 4.4),
-      new THREE.Vector3(-4.6, 0.04, 4.9),
-      new THREE.Vector3(-4.1, 0.04, 5.3),
-      new THREE.Vector3(-3.7, 0.04, 5.0),
+      new THREE.Vector3(LEISURE.x - 0.15, 0.05, LEISURE.z - 0.85),
+      new THREE.Vector3(LEISURE.x + 0.35, 0.04, LEISURE.z - 0.35),
+      new THREE.Vector3(LEISURE.x + 0.7, 0.04, LEISURE.z + 0.15),
+      new THREE.Vector3(LEISURE.x + 0.45, 0.04, LEISURE.z + 0.55),
     ];
     const trail = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(trailPts),
@@ -505,12 +551,11 @@ export class OfficeScene {
     );
     toys.add(trail);
 
-    // --- cardboard box (cat classic) near wander zone ---
+    // --- cardboard box ---
     const box = new THREE.Group();
     const boxBody = mesh(new THREE.BoxGeometry(0.9, 0.55, 0.7), 0xc4a574, { roughness: 0.95 });
     boxBody.position.y = 0.28;
     box.add(boxBody);
-    // open top flaps
     const flap1 = mesh(new THREE.BoxGeometry(0.9, 0.04, 0.35), 0xb89560, { cast: false });
     flap1.position.set(0, 0.58, -0.28);
     flap1.rotation.x = -0.6;
@@ -519,7 +564,6 @@ export class OfficeScene {
     flap2.position.set(0, 0.58, 0.28);
     flap2.rotation.x = 0.55;
     box.add(flap2);
-    // cutout hole hint
     const hole = mesh(
       new THREE.CircleGeometry(0.18, 12),
       0x3a2e22,
@@ -528,13 +572,13 @@ export class OfficeScene {
     hole.position.set(0.46, 0.3, 0);
     hole.rotation.y = Math.PI / 2;
     box.add(hole);
-    box.position.set(3.8, 0, 2.8);
-    box.rotation.y = 0.35;
+    box.position.set(LEISURE.x + 1.2, 0, LEISURE.z + 0.35); // ~ (8.8, -3.05)
+    box.rotation.y = -0.45;
     toys.add(box);
 
-    // --- small jingle ball near desks ---
+    // --- jingle ball ---
     const jingle = mesh(new THREE.SphereGeometry(0.1, 10, 8), 0xf0c040, { metalness: 0.3, roughness: 0.4 });
-    jingle.position.set(-2.2, 0.1, -0.5);
+    jingle.position.set(LEISURE.x + 0.55, 0.1, LEISURE.z + 0.95); // ~ (8.15, -2.45)
     toys.add(jingle);
 
     this.scene.add(toys);

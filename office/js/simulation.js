@@ -41,7 +41,7 @@ function makeLabelSprite(text, color) {
   roundRect(ctx, 16, 12, 224, 40, 12);
   ctx.stroke();
   ctx.fillStyle = '#f3f4f6';
-  ctx.font = 'bold 22px "Segoe UI", "PingFang HK", sans-serif';
+  ctx.font = 'bold 22px "Segoe UI", "PingFang HK", "Noto Sans TC", sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(text, 128, 33);
@@ -54,6 +54,59 @@ function makeLabelSprite(text, color) {
   sprite.center.set(0.5, 0);
   return sprite;
 }
+
+/** Status pill under name — Traditional Chinese, smaller */
+function makeStatusSprite(text, color) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 56;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 256, 56);
+  ctx.fillStyle = 'rgba(12, 16, 24, 0.72)';
+  roundRect(ctx, 48, 8, 160, 36, 10);
+  ctx.fill();
+  ctx.strokeStyle = color || '#6b7280';
+  ctx.lineWidth = 2.5;
+  roundRect(ctx, 48, 8, 160, 36, 10);
+  ctx.stroke();
+  ctx.fillStyle = color || '#f3f4f6';
+  ctx.font = 'bold 20px "Segoe UI", "PingFang HK", "Noto Sans TC", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 128, 27);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(1.35, 0.32, 1);
+  sprite.center.set(0.5, 0);
+  return sprite;
+}
+
+function redrawStatusSprite(sprite, text, color) {
+  const canvas = sprite.material.map.image;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = 'rgba(12, 16, 24, 0.72)';
+  roundRect(ctx, 48, 8, 160, 36, 10);
+  ctx.fill();
+  ctx.strokeStyle = color || '#6b7280';
+  ctx.lineWidth = 2.5;
+  roundRect(ctx, 48, 8, 160, 36, 10);
+  ctx.stroke();
+  ctx.fillStyle = color || '#f3f4f6';
+  ctx.font = 'bold 20px "Segoe UI", "PingFang HK", "Noto Sans TC", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 128, 27);
+  sprite.material.map.needsUpdate = true;
+}
+
+// World-Y offsets above cat feet (name above, status below, clear gap)
+const LABEL_Y_NAME = 1.85;
+const LABEL_Y_STATUS = 1.38; // ~0.47 below name baseline
+const LABEL_Y_BUBBLE = 2.45;
 
 function makeBubbleSprite(emoji) {
   const canvas = document.createElement('canvas');
@@ -128,22 +181,28 @@ export class Simulation {
 
       const label = makeLabelSprite(def.name, def.color);
       label.position.copy(cat.position);
-      label.position.y = 1.35;
+      label.position.y = LABEL_Y_NAME;
       this.office.scene.add(label);
+
+      const statusKeys = Object.keys(STATUS);
+      const status = statusKeys[i % statusKeys.length];
+      const stInfo = STATUS[status];
+      const statusLabel = makeStatusSprite(stInfo.label, stInfo.color);
+      statusLabel.position.copy(cat.position);
+      statusLabel.position.y = LABEL_Y_STATUS;
+      this.office.scene.add(statusLabel);
 
       const bubble = makeBubbleSprite('💭');
       bubble.visible = false;
       bubble.position.copy(cat.position);
-      bubble.position.y = 1.7;
+      bubble.position.y = LABEL_Y_BUBBLE;
       this.office.scene.add(bubble);
-
-      const statusKeys = Object.keys(STATUS);
-      const status = statusKeys[i % statusKeys.length];
 
       const agent = {
         ...def,
         cat,
         label,
+        statusLabel,
         bubble,
         status,
         message: pickMessage(status),
@@ -163,6 +222,9 @@ export class Simulation {
   }
 
   _applyStatusVisual(agent) {
+    const st = STATUS[agent.status] || STATUS.idle;
+    redrawStatusSprite(agent.statusLabel, st.label, st.color);
+
     const emoji = BUBBLE_EMOJI[agent.status] || '🐱';
     // rebuild bubble texture cheaply
     const canvas = agent.bubble.material.map.image;
@@ -278,8 +340,14 @@ export class Simulation {
   _syncOverlays(t) {
     for (const agent of this.agents) {
       const p = agent.cat.position;
-      agent.label.position.set(p.x, p.y + 1.35, p.z);
-      agent.bubble.position.set(p.x, p.y + 1.7 + Math.sin(t * 3 + agent.deskIndex) * 0.05, p.z);
+      // name above, status below (~0.47 world units gap) — never overlap at iso angle
+      agent.label.position.set(p.x, p.y + LABEL_Y_NAME, p.z);
+      agent.statusLabel.position.set(p.x, p.y + LABEL_Y_STATUS, p.z);
+      agent.bubble.position.set(
+        p.x,
+        p.y + LABEL_Y_BUBBLE + Math.sin(t * 3 + agent.deskIndex) * 0.05,
+        p.z
+      );
     }
   }
 
