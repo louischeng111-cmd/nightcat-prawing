@@ -257,22 +257,17 @@ export function createCat(breedKey, accentHex) {
     });
   }
 
-  // 名牌錨點（name above status; keep gap vs simulation LABEL_Y_*）
+  // 名牌錨點（name + status only; gap vs simulation LABEL_Y_*）
   const labelAnchor = new THREE.Object3D();
-  labelAnchor.position.set(0, 1.85, 0);
+  labelAnchor.position.set(0, 1.76, 0);
   root.add(labelAnchor);
-
-  // 狀態泡泡錨點（above name stack）
-  const bubbleAnchor = new THREE.Object3D();
-  bubbleAnchor.position.set(0, 2.45, 0);
-  root.add(bubbleAnchor);
 
   // 品種強調環（地板色帶用 accent）
   if (accentHex) {
     root.userData.accent = new THREE.Color(accentHex);
   }
 
-  root.userData.parts = { head, torso, legs, tail, labelAnchor, bubbleAnchor, breedKey };
+  root.userData.parts = { head, torso, legs, tail, labelAnchor, breedKey };
   root.userData.breed = breedKey;
   return root;
 }

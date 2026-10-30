@@ -130,7 +130,7 @@ export class OfficeScene {
     this._buildBossRoom();
     this._buildLounge();
     this._buildKitchen();
-    this._buildPlants();
+    this._buildAquariums();
     this._buildCatToys();
     this._buildInfoBoards();
     this._buildWaypoints();
@@ -772,22 +772,165 @@ export class OfficeScene {
     this.kitchenSpot = new THREE.Vector3(2, 0, -ROOM.d / 2 + 1.5);
   }
 
-  _buildPlants() {
+  _buildAquariums() {
+    // Empty floor spots (former indoor plant corners + open aisles).
+    // Avoid desks, boss glass, kitchen counter, 休閒區 rug toys.
     const spots = [
-      [-9.5, -6], [-9.5, 6], [9.5, -6], [3, 6.5], [-2, -6.5],
+      { x: -9.4, z: -5.8, fish: 3 },
+      { x: -9.4, z: 5.8, fish: 2 },
+      { x: -2.0, z: -6.4, fish: 3 },
+      { x: 9.2, z: -6.5, fish: 2 },
+      { x: 0.2, z: 6.0, fish: 3 },
     ];
-    spots.forEach(([x, z]) => {
-      const pot = mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.35, 10), 0xc4785a);
-      pot.position.set(x, 0.18, z);
-      this.scene.add(pot);
-      const leaf = mesh(new THREE.SphereGeometry(0.45, 8, 6), 0x3d8f5a, { flat: true });
-      leaf.position.set(x, 0.7, z);
-      leaf.scale.set(1, 1.2, 1);
-      this.scene.add(leaf);
-      const leaf2 = mesh(new THREE.SphereGeometry(0.3, 8, 6), 0x4eaa68, { flat: true });
-      leaf2.position.set(x + 0.25, 0.85, z + 0.1);
-      this.scene.add(leaf2);
+    this.aquariums = [];
+    const fishColors = [0xff6b4a, 0xffc857, 0x4ecdc4, 0xff8fab, 0x7c6cf0, 0xf0e68c];
+
+    spots.forEach((spot, si) => {
+      const group = new THREE.Group();
+      group.position.set(spot.x, 0, spot.z);
+
+      // stand / cabinet
+      const stand = mesh(
+        new THREE.BoxGeometry(1.15, 0.55, 0.7),
+        0x5a4638,
+        { roughness: 0.85 }
+      );
+      stand.position.y = 0.28;
+      group.add(stand);
+      const standFront = mesh(
+        new THREE.BoxGeometry(1.05, 0.35, 0.02),
+        0x3a2e28,
+        { cast: false, roughness: 0.7 }
+      );
+      standFront.position.set(0, 0.28, 0.36);
+      group.add(standFront);
+
+      // glass tank outer
+      const tankW = 1.05;
+      const tankH = 0.72;
+      const tankD = 0.58;
+      const glass = mesh(
+        new THREE.BoxGeometry(tankW, tankH, tankD),
+        0xc8e8f8,
+        {
+          transparent: true,
+          opacity: 0.22,
+          roughness: 0.12,
+          metalness: 0.05,
+          cast: false,
+          side: THREE.DoubleSide,
+        }
+      );
+      glass.position.y = 0.55 + tankH / 2;
+      group.add(glass);
+
+      // dark rim
+      const rim = mesh(
+        new THREE.BoxGeometry(tankW + 0.04, 0.05, tankD + 0.04),
+        0x2a3038,
+        { cast: false, roughness: 0.6 }
+      );
+      rim.position.y = 0.55 + tankH + 0.02;
+      group.add(rim);
+
+      // water volume (inset)
+      const water = mesh(
+        new THREE.BoxGeometry(tankW * 0.92, tankH * 0.72, tankD * 0.88),
+        0x3aa0c8,
+        {
+          transparent: true,
+          opacity: 0.38,
+          roughness: 0.2,
+          metalness: 0.05,
+          cast: false,
+          side: THREE.DoubleSide,
+        }
+      );
+      water.position.y = 0.55 + tankH * 0.42;
+      group.add(water);
+
+      // gravel bed
+      const gravel = mesh(
+        new THREE.BoxGeometry(tankW * 0.9, 0.06, tankD * 0.86),
+        0xb8956a,
+        { cast: false, roughness: 1 }
+      );
+      gravel.position.y = 0.58;
+      group.add(gravel);
+
+      // tiny plant decor inside
+      const weed = mesh(
+        new THREE.ConeGeometry(0.06, 0.28, 5),
+        0x2d8a5a,
+        { cast: false, flat: true }
+      );
+      weed.position.set(-0.28, 0.72, -0.08);
+      group.add(weed);
+      const weed2 = mesh(
+        new THREE.ConeGeometry(0.05, 0.22, 5),
+        0x3da06a,
+        { cast: false, flat: true }
+      );
+      weed2.position.set(0.3, 0.68, 0.1);
+      group.add(weed2);
+
+      const fishList = [];
+      const nFish = spot.fish;
+      const waterY = 0.55 + tankH * 0.42;
+      for (let i = 0; i < nFish; i++) {
+        const col = fishColors[(si * 3 + i) % fishColors.length];
+        const body = mesh(
+          new THREE.SphereGeometry(0.055, 8, 6),
+          col,
+          { cast: false, roughness: 0.45, flat: true }
+        );
+        body.scale.set(1.6, 0.85, 0.7);
+        const tail = mesh(
+          new THREE.ConeGeometry(0.035, 0.07, 4),
+          col,
+          { cast: false, flat: true }
+        );
+        tail.rotation.z = Math.PI / 2;
+        tail.position.x = -0.09;
+        const fish = new THREE.Group();
+        fish.add(body);
+        fish.add(tail);
+        const phase = (i / nFish) * Math.PI * 2 + si;
+        const rx = 0.28 + (i % 2) * 0.06;
+        const rz = 0.14 + (i % 3) * 0.03;
+        fish.position.set(Math.cos(phase) * rx, waterY + (i - 1) * 0.06, Math.sin(phase) * rz);
+        group.add(fish);
+        fishList.push({
+          mesh: fish,
+          phase,
+          speed: 0.9 + i * 0.25 + si * 0.05,
+          rx,
+          rz,
+          cy: waterY + (i - 1) * 0.05,
+          zMul: 1.15 + i * 0.1,
+        });
+      }
+
+      this.scene.add(group);
+      this.aquariums.push({ group, fish: fishList });
     });
+  }
+
+  _animateFish(dt) {
+    if (!this.aquariums) return;
+    for (const tank of this.aquariums) {
+      for (const f of tank.fish) {
+        f.phase += dt * f.speed;
+        const x = Math.cos(f.phase) * f.rx;
+        const z = Math.sin(f.phase * f.zMul) * f.rz;
+        const y = f.cy + Math.sin(f.phase * 2.2) * 0.04;
+        f.mesh.position.set(x, y, z);
+        // face swim direction (tangent of orbit)
+        const dx = -Math.sin(f.phase) * f.rx;
+        const dz = Math.cos(f.phase * f.zMul) * f.rz * f.zMul;
+        f.mesh.rotation.y = Math.atan2(dx, dz);
+      }
+    }
   }
 
   _buildWaypoints() {
@@ -863,6 +1006,7 @@ export class OfficeScene {
 
   update(dt, snapshot) {
     this._animateWaves(dt);
+    this._animateFish(dt);
     this._boardTick += dt;
     if (snapshot) {
       this._lastSnap = snapshot;

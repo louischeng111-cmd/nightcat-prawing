@@ -103,36 +103,9 @@ function redrawStatusSprite(sprite, text, color) {
   sprite.material.map.needsUpdate = true;
 }
 
-// World-Y offsets above cat feet (name above, status below, clear gap)
-const LABEL_Y_NAME = 1.85;
-const LABEL_Y_STATUS = 1.38; // ~0.47 below name baseline
-const LABEL_Y_BUBBLE = 2.45;
-
-function makeBubbleSprite(emoji) {
-  const canvas = document.createElement('canvas');
-  canvas.width = 128;
-  canvas.height = 128;
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, 128, 128);
-  ctx.beginPath();
-  ctx.arc(64, 56, 40, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(255,255,255,0.92)';
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(48, 90);
-  ctx.lineTo(58, 110);
-  ctx.lineTo(72, 90);
-  ctx.fill();
-  ctx.font = '40px serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(emoji, 64, 58);
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
-  sprite.scale.set(0.7, 0.7, 1);
-  return sprite;
-}
+// World-Y offsets above cat feet (name above, status below — tighter stack, no bubble)
+const LABEL_Y_NAME = 1.76;
+const LABEL_Y_STATUS = 1.46; // ~0.30 below name baseline
 
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
@@ -143,14 +116,6 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.arcTo(x, y, x + w, y, r);
   ctx.closePath();
 }
-
-const BUBBLE_EMOJI = {
-  thinking: '💭',
-  running: '⚡',
-  waiting: '✋',
-  done: '✅',
-  idle: '☕',
-};
 
 export class Simulation {
   constructor(office, onChange) {
@@ -192,18 +157,11 @@ export class Simulation {
       statusLabel.position.y = LABEL_Y_STATUS;
       this.office.scene.add(statusLabel);
 
-      const bubble = makeBubbleSprite('💭');
-      bubble.visible = false;
-      bubble.position.copy(cat.position);
-      bubble.position.y = LABEL_Y_BUBBLE;
-      this.office.scene.add(bubble);
-
       const agent = {
         ...def,
         cat,
         label,
         statusLabel,
-        bubble,
         status,
         message: pickMessage(status),
         deskIndex: i % desks.length,
@@ -224,27 +182,6 @@ export class Simulation {
   _applyStatusVisual(agent) {
     const st = STATUS[agent.status] || STATUS.idle;
     redrawStatusSprite(agent.statusLabel, st.label, st.color);
-
-    const emoji = BUBBLE_EMOJI[agent.status] || '🐱';
-    // rebuild bubble texture cheaply
-    const canvas = agent.bubble.material.map.image;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, 128, 128);
-    ctx.beginPath();
-    ctx.arc(64, 56, 40, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.92)';
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(48, 90);
-    ctx.lineTo(58, 110);
-    ctx.lineTo(72, 90);
-    ctx.fill();
-    ctx.font = '40px serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(emoji, 64, 58);
-    agent.bubble.material.map.needsUpdate = true;
-    agent.bubble.visible = agent.status !== 'idle';
   }
 
   _retarget(agent, instant = false) {
@@ -337,17 +274,12 @@ export class Simulation {
     this._syncOverlays(this.elapsed);
   }
 
-  _syncOverlays(t) {
+  _syncOverlays(_t) {
     for (const agent of this.agents) {
       const p = agent.cat.position;
-      // name above, status below (~0.47 world units gap) — never overlap at iso angle
+      // name + status only (~0.30 world units gap) — no emoji bubble
       agent.label.position.set(p.x, p.y + LABEL_Y_NAME, p.z);
       agent.statusLabel.position.set(p.x, p.y + LABEL_Y_STATUS, p.z);
-      agent.bubble.position.set(
-        p.x,
-        p.y + LABEL_Y_BUBBLE + Math.sin(t * 3 + agent.deskIndex) * 0.05,
-        p.z
-      );
     }
   }
 
