@@ -587,8 +587,8 @@ export class OfficeScene {
       0xde4b40, 0x4ecb71, 0xe8c547, 0x7c6cf0,
     ];
     const positions = [
-      [-7.5, -5.0], [-4.5, -5.0], [-1.5, -5.0], [1.5, -5.0],
-      [-7.5, -2.8], [-4.5, -2.8], [-1.5, -2.8], [1.5, -2.8],
+      [-7.5, -4.0], [-4.5, -4.0], [-1.5, -4.0], [1.5, -4.0],
+      [-7.5, -1.2], [-4.5, -1.2], [-1.5, -1.2], [1.5, -1.2],
     ];
 
     positions.forEach(([x, z], i) => {
@@ -719,10 +719,9 @@ export class OfficeScene {
 
   _buildLounge() {
     // green circular rug + larger L sofa (~1.4×) — middle of EMPTY plaza
-    // Louis red circle: aisle BETWEEN old lounge and desk cluster (not left of that gap)
-    // desks front z=-2.8 pads→~-1.9; keep rug clear → cz≥0.8; shift +X into circled aisle
+    // desks restored to z=-4.0/-1.2; only sofa moves. red-circle aisle, clear pads (cz≥1.9)
     const cx = -2.0;
-    const cz = 0.8;
+    const cz = 2.0;
     this.loungeCenter = new THREE.Vector3(cx, 0, cz);
 
     const SOFA_SCALE = 1.4;
