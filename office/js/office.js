@@ -365,86 +365,81 @@ export class OfficeScene {
     left.position.set(-ROOM.w / 2, ROOM.h / 2, 0);
     this.scene.add(left);
 
-    // window panes on back wall — look out to sea
-    for (let i = 0; i < 3; i++) {
-      const frame = mesh(new THREE.BoxGeometry(3.2, 2.0, 0.08), 0xf5f5f5, { cast: false });
-      frame.position.set(-8.2 + i * 4.2, 1.7, -ROOM.d / 2 + 0.12);
-      this.scene.add(frame);
-      const glass = mesh(
-        new THREE.BoxGeometry(2.9, 1.7, 0.04),
-        0x7ec8ef,
-        { transparent: true, opacity: 0.28, metalness: 0.2, roughness: 0.2, cast: false }
-      );
-      glass.position.copy(frame.position);
-      glass.position.z += 0.04;
-      this.scene.add(glass);
-    }
+    // pale window / cork panels removed — three left-style digital boards in _buildInfoBoards
     // (skyline / city buildings removed — ocean island only)
   }
 
   _buildInfoBoards() {
     this.boardMeshes = [];
+    const greenStyle = {
+      w: 512,
+      h: 320,
+      accent: '#22a874',
+      border: '#22a874',
+      bgTop: '#14241c',
+      bgBot: '#0c1812',
+    };
 
-    // Board A: team roster (right side of back wall)
-    const rosterLines = AGENTS.slice(0, 8).map((a) => ({
-      text: `${a.name} · ${a.breed}`,
-      color: a.color,
-    }));
-    const rosterTex = makeBoardTexture('夜貓總部 · 貓員名單', [
-      { text: '10 隻唔同品種 · 海島辦公', color: '#a78bfa' },
-      ...rosterLines.slice(0, 6),
-    ], { w: 512, h: 360, accent: '#7c6cf0' });
+    // Three left-style (green glow) boards along back wall — replace pale window/cork panels
+    const backZ = -ROOM.d / 2 + 0.2;
+    const frameZ = -ROOM.d / 2 + 0.16;
+    const boardSpecs = [
+      {
+        kind: 'roster',
+        x: -8.2,
+        title: '夜貓總部 · 貓員名單',
+        lines: [
+          { text: '10 隻唔同品種 · 海島辦公', color: '#7ec8ef' },
+          ...AGENTS.slice(0, 6).map((a) => ({ text: `${a.name} · ${a.breed}`, color: a.color })),
+        ],
+      },
+      {
+        kind: 'status',
+        x: -4.0,
+        title: '今日狀態看板',
+        lines: [
+          { text: '模擬運行中…', color: '#22a874' },
+          '諗緊 / 開工 / 要你 / 完成 / 收工',
+          '望窗：四面環海 · 海島總部',
+          '玩嘢：貓爪板 · 毛線球 · 紙箱',
+          '提示：撳 HUD 可停模擬／換燈光',
+        ],
+      },
+      {
+        kind: 'breed',
+        x: 0.2,
+        title: '品種地圖 · Breed Map',
+        lines: [
+          { text: '每隻貓＝一個 bot', color: '#7ec8ef' },
+          ...AGENTS.slice(0, 6).map((a) => ({
+            text: `${a.breedKey}: ${a.breed}`,
+            color: '#c8d0e0',
+          })),
+        ],
+      },
+    ];
 
-    const boardA = new THREE.Mesh(
-      new THREE.PlaneGeometry(3.4, 2.2),
-      new THREE.MeshBasicMaterial({ map: rosterTex, toneMapped: false })
-    );
-    boardA.position.set(7.2, 1.75, -ROOM.d / 2 + 0.2);
-    this.scene.add(boardA);
-    // frame
-    const frameA = mesh(new THREE.BoxGeometry(3.55, 2.35, 0.06), 0x2a2a32, { cast: false });
-    frameA.position.set(7.2, 1.75, -ROOM.d / 2 + 0.16);
-    this.scene.add(frameA);
-    this.boardMeshes.push({ mesh: boardA, kind: 'roster' });
-
-    // Board B: live status / activity (left wall)
-    const statusTex = makeBoardTexture('今日狀態看板', [
-      { text: '模擬運行中…', color: '#7c6cf0' },
-      '諗緊 / 開工 / 要你 / 完成 / 收工',
-      '望窗：四面環海 · 海島總部',
-      '玩嘢：貓爪板 · 毛線球 · 紙箱',
-      '提示：撳 HUD 可停模擬／換燈光',
-    ], { w: 512, h: 320, accent: '#22a874', border: '#22a874', bgTop: '#14241c', bgBot: '#0c1812' });
-
-    const boardB = new THREE.Mesh(
-      new THREE.PlaneGeometry(2.8, 1.75),
-      new THREE.MeshBasicMaterial({ map: statusTex, toneMapped: false })
-    );
-    boardB.position.set(-ROOM.w / 2 + 0.2, 1.7, -2.5);
-    boardB.rotation.y = Math.PI / 2;
-    this.scene.add(boardB);
-    const frameB = mesh(new THREE.BoxGeometry(0.06, 1.9, 2.95), 0x2a2a32, { cast: false });
-    frameB.position.set(-ROOM.w / 2 + 0.16, 1.7, -2.5);
-    this.scene.add(frameB);
-    this.boardMeshes.push({ mesh: boardB, kind: 'status' });
-
-    // Board C: breed map / hints near kitchen
-    const breedLines = AGENTS.map((a) => `${a.breedKey}: ${a.breed}`);
-    const breedTex = makeBoardTexture('品種地圖 · Breed Map', [
-      { text: '每隻貓＝一個 bot', color: '#e8c547' },
-      ...breedLines.slice(0, 6).map((t) => ({ text: t, color: '#c8d0e0' })),
-    ], { w: 512, h: 340, accent: '#e09412', border: '#e09412', bgTop: '#2a2010', bgBot: '#181208' });
-
-    const boardC = new THREE.Mesh(
-      new THREE.PlaneGeometry(2.6, 1.7),
-      new THREE.MeshBasicMaterial({ map: breedTex, toneMapped: false })
-    );
-    boardC.position.set(-3.5, 1.7, -ROOM.d / 2 + 0.2);
-    this.scene.add(boardC);
-    const frameC = mesh(new THREE.BoxGeometry(2.75, 1.85, 0.06), 0x2a2a32, { cast: false });
-    frameC.position.set(-3.5, 1.7, -ROOM.d / 2 + 0.16);
-    this.scene.add(frameC);
-    this.boardMeshes.push({ mesh: boardC, kind: 'breed' });
+    for (const spec of boardSpecs) {
+      const tex = makeBoardTexture(spec.title, spec.lines, { ...greenStyle });
+      const board = new THREE.Mesh(
+        new THREE.PlaneGeometry(2.9, 1.8),
+        new THREE.MeshBasicMaterial({ map: tex, toneMapped: false })
+      );
+      board.position.set(spec.x, 1.7, backZ);
+      this.scene.add(board);
+      // dark frame + green edge strip (match left-wall look)
+      const frame = mesh(new THREE.BoxGeometry(3.05, 1.95, 0.06), 0x1a2a22, { cast: false });
+      frame.position.set(spec.x, 1.7, frameZ);
+      this.scene.add(frame);
+      const glow = mesh(new THREE.BoxGeometry(3.12, 2.02, 0.02), 0x22a874, {
+        cast: false,
+        roughness: 0.4,
+        metalness: 0.2,
+      });
+      glow.position.set(spec.x, 1.7, frameZ - 0.02);
+      this.scene.add(glow);
+      this.boardMeshes.push({ mesh: board, kind: spec.kind });
+    }
   }
 
   /** Optional: refresh status board from sim snapshot */
@@ -722,9 +717,11 @@ export class OfficeScene {
   }
 
   _buildLounge() {
-    // green circular rug + L sofa
+    // green circular rug + larger L sofa (~1.4×)
+    const SOFA_SCALE = 1.4;
+    const rugR = 2.2 * 1.15; // bump rug so enlarged sofa sits on it
     const rug = mesh(
-      new THREE.CylinderGeometry(2.2, 2.2, 0.04, 32),
+      new THREE.CylinderGeometry(rugR, rugR, 0.04, 32),
       0x3d8f5a,
       { cast: false, roughness: 0.95 }
     );
@@ -732,21 +729,31 @@ export class OfficeScene {
     this.scene.add(rug);
 
     const sofaMat = 0x6b7280;
-    const sofaA = mesh(new THREE.BoxGeometry(2.4, 0.4, 0.85), sofaMat);
-    sofaA.position.set(-7.2, 0.28, 4.5);
+    // long seat (along −X)
+    const seatLen = 2.4 * SOFA_SCALE;
+    const seatDep = 0.85 * SOFA_SCALE;
+    const seatH = 0.4;
+    const sofaA = mesh(new THREE.BoxGeometry(seatLen, seatH, seatDep), sofaMat);
+    sofaA.position.set(-7.35, seatH / 2 + 0.08, 4.35);
     this.scene.add(sofaA);
-    const sofaBack = mesh(new THREE.BoxGeometry(2.4, 0.55, 0.18), sofaMat);
-    sofaBack.position.set(-7.2, 0.55, 4.05);
+    const sofaBack = mesh(
+      new THREE.BoxGeometry(seatLen, 0.55 * SOFA_SCALE, 0.18 * SOFA_SCALE),
+      sofaMat
+    );
+    sofaBack.position.set(-7.35, 0.55 * SOFA_SCALE + 0.08, 4.35 - seatDep / 2 - 0.05);
     this.scene.add(sofaBack);
-    const sofaB = mesh(new THREE.BoxGeometry(0.85, 0.4, 1.8), sofaMat);
-    sofaB.position.set(-5.5, 0.28, 5.5);
+    // chaise / return (along +Z)
+    const chaiseLen = 1.8 * SOFA_SCALE;
+    const chaiseW = 0.85 * SOFA_SCALE;
+    const sofaB = mesh(new THREE.BoxGeometry(chaiseW, seatH, chaiseLen), sofaMat);
+    sofaB.position.set(-5.25, seatH / 2 + 0.08, 5.55);
     this.scene.add(sofaB);
 
     const coffee = mesh(new THREE.CylinderGeometry(0.55, 0.6, 0.08, 20), 0xd8cfc0);
-    coffee.position.set(-6.3, 0.35, 5.5);
+    coffee.position.set(-6.2, 0.35, 5.45);
     this.scene.add(coffee);
     const cleg = mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.3, 8), 0xb0a898, { cast: false });
-    cleg.position.set(-6.3, 0.16, 5.5);
+    cleg.position.set(-6.2, 0.16, 5.45);
     this.scene.add(cleg);
 
     this.loungeCenter = new THREE.Vector3(-6.5, 0, 5.2);
@@ -773,147 +780,145 @@ export class OfficeScene {
   }
 
   _buildAquariums() {
-    // Empty floor spots (former indoor plant corners + open aisles).
-    // Avoid desks, boss glass, kitchen counter, 休閒區 rug toys.
-    const spots = [
-      { x: -9.4, z: -5.8, fish: 3 },
-      { x: -9.4, z: 5.8, fish: 2 },
-      { x: -2.0, z: -6.4, fish: 3 },
-      { x: 9.2, z: -6.5, fish: 2 },
-      { x: 0.2, z: 6.0, fish: 3 },
-    ];
+    // One super-large aquarium on mid-right wall (yellow oval) — clear of 休閒區 toys at ~7.6,-3.4
     this.aquariums = [];
-    const fishColors = [0xff6b4a, 0xffc857, 0x4ecdc4, 0xff8fab, 0x7c6cf0, 0xf0e68c];
+    const fishColors = [0xff6b4a, 0xffc857, 0x4ecdc4, 0xff8fab, 0x7c6cf0, 0xf0e68c, 0xffffff, 0xff66aa];
 
-    spots.forEach((spot, si) => {
-      const group = new THREE.Group();
-      group.position.set(spot.x, 0, spot.z);
+    const spot = { x: 9.4, z: -0.2 };
+    const group = new THREE.Group();
+    group.position.set(spot.x, 0, spot.z);
+    // face inward from +X wall
+    group.rotation.y = -Math.PI / 2;
 
-      // stand / cabinet
-      const stand = mesh(
-        new THREE.BoxGeometry(1.15, 0.55, 0.7),
-        0x5a4638,
-        { roughness: 0.85 }
-      );
-      stand.position.y = 0.28;
-      group.add(stand);
-      const standFront = mesh(
-        new THREE.BoxGeometry(1.05, 0.35, 0.02),
-        0x3a2e28,
-        { cast: false, roughness: 0.7 }
-      );
-      standFront.position.set(0, 0.28, 0.36);
-      group.add(standFront);
+    const tankW = 3.6; // ~3.4× prior width
+    const tankH = 1.55;
+    const tankD = 1.35;
+    const standH = 0.7;
 
-      // glass tank outer
-      const tankW = 1.05;
-      const tankH = 0.72;
-      const tankD = 0.58;
-      const glass = mesh(
-        new THREE.BoxGeometry(tankW, tankH, tankD),
-        0xc8e8f8,
-        {
-          transparent: true,
-          opacity: 0.22,
-          roughness: 0.12,
-          metalness: 0.05,
-          cast: false,
-          side: THREE.DoubleSide,
-        }
-      );
-      glass.position.y = 0.55 + tankH / 2;
-      group.add(glass);
+    const stand = mesh(
+      new THREE.BoxGeometry(tankW + 0.12, standH, tankD + 0.1),
+      0x5a4638,
+      { roughness: 0.85 }
+    );
+    stand.position.y = standH / 2;
+    group.add(stand);
+    const standFront = mesh(
+      new THREE.BoxGeometry(tankW, standH * 0.55, 0.03),
+      0x3a2e28,
+      { cast: false, roughness: 0.7 }
+    );
+    standFront.position.set(0, standH / 2, tankD / 2 + 0.02);
+    group.add(standFront);
 
-      // dark rim
-      const rim = mesh(
-        new THREE.BoxGeometry(tankW + 0.04, 0.05, tankD + 0.04),
-        0x2a3038,
-        { cast: false, roughness: 0.6 }
-      );
-      rim.position.y = 0.55 + tankH + 0.02;
-      group.add(rim);
-
-      // water volume (inset)
-      const water = mesh(
-        new THREE.BoxGeometry(tankW * 0.92, tankH * 0.72, tankD * 0.88),
-        0x3aa0c8,
-        {
-          transparent: true,
-          opacity: 0.38,
-          roughness: 0.2,
-          metalness: 0.05,
-          cast: false,
-          side: THREE.DoubleSide,
-        }
-      );
-      water.position.y = 0.55 + tankH * 0.42;
-      group.add(water);
-
-      // gravel bed
-      const gravel = mesh(
-        new THREE.BoxGeometry(tankW * 0.9, 0.06, tankD * 0.86),
-        0xb8956a,
-        { cast: false, roughness: 1 }
-      );
-      gravel.position.y = 0.58;
-      group.add(gravel);
-
-      // tiny plant decor inside
-      const weed = mesh(
-        new THREE.ConeGeometry(0.06, 0.28, 5),
-        0x2d8a5a,
-        { cast: false, flat: true }
-      );
-      weed.position.set(-0.28, 0.72, -0.08);
-      group.add(weed);
-      const weed2 = mesh(
-        new THREE.ConeGeometry(0.05, 0.22, 5),
-        0x3da06a,
-        { cast: false, flat: true }
-      );
-      weed2.position.set(0.3, 0.68, 0.1);
-      group.add(weed2);
-
-      const fishList = [];
-      const nFish = spot.fish;
-      const waterY = 0.55 + tankH * 0.42;
-      for (let i = 0; i < nFish; i++) {
-        const col = fishColors[(si * 3 + i) % fishColors.length];
-        const body = mesh(
-          new THREE.SphereGeometry(0.055, 8, 6),
-          col,
-          { cast: false, roughness: 0.45, flat: true }
-        );
-        body.scale.set(1.6, 0.85, 0.7);
-        const tail = mesh(
-          new THREE.ConeGeometry(0.035, 0.07, 4),
-          col,
-          { cast: false, flat: true }
-        );
-        tail.rotation.z = Math.PI / 2;
-        tail.position.x = -0.09;
-        const fish = new THREE.Group();
-        fish.add(body);
-        fish.add(tail);
-        const phase = (i / nFish) * Math.PI * 2 + si;
-        const rx = 0.28 + (i % 2) * 0.06;
-        const rz = 0.14 + (i % 3) * 0.03;
-        fish.position.set(Math.cos(phase) * rx, waterY + (i - 1) * 0.06, Math.sin(phase) * rz);
-        group.add(fish);
-        fishList.push({
-          mesh: fish,
-          phase,
-          speed: 0.9 + i * 0.25 + si * 0.05,
-          rx,
-          rz,
-          cy: waterY + (i - 1) * 0.05,
-          zMul: 1.15 + i * 0.1,
-        });
+    const glass = mesh(
+      new THREE.BoxGeometry(tankW, tankH, tankD),
+      0xc8e8f8,
+      {
+        transparent: true,
+        opacity: 0.2,
+        roughness: 0.12,
+        metalness: 0.05,
+        cast: false,
+        side: THREE.DoubleSide,
       }
+    );
+    glass.position.y = standH + tankH / 2;
+    group.add(glass);
 
-      this.scene.add(group);
-      this.aquariums.push({ group, fish: fishList });
+    const rim = mesh(
+      new THREE.BoxGeometry(tankW + 0.06, 0.07, tankD + 0.06),
+      0x2a3038,
+      { cast: false, roughness: 0.6 }
+    );
+    rim.position.y = standH + tankH + 0.03;
+    group.add(rim);
+
+    const water = mesh(
+      new THREE.BoxGeometry(tankW * 0.92, tankH * 0.72, tankD * 0.88),
+      0x3aa0c8,
+      {
+        transparent: true,
+        opacity: 0.36,
+        roughness: 0.2,
+        metalness: 0.05,
+        cast: false,
+        side: THREE.DoubleSide,
+      }
+    );
+    const waterY = standH + tankH * 0.42;
+    water.position.y = waterY;
+    group.add(water);
+
+    const gravel = mesh(
+      new THREE.BoxGeometry(tankW * 0.9, 0.08, tankD * 0.86),
+      0xb8956a,
+      { cast: false, roughness: 1 }
+    );
+    gravel.position.y = standH + 0.05;
+    group.add(gravel);
+
+    // plants / decor
+    const plantSpots = [
+      [-1.2, -0.35], [-0.6, 0.25], [0.2, -0.3], [0.9, 0.2], [1.3, -0.2],
+    ];
+    plantSpots.forEach(([px, pz], i) => {
+      const h = 0.35 + (i % 3) * 0.12;
+      const weed = mesh(
+        new THREE.ConeGeometry(0.08 + (i % 2) * 0.03, h, 5),
+        i % 2 ? 0x2d8a5a : 0x3da06a,
+        { cast: false, flat: true }
+      );
+      weed.position.set(px, standH + 0.08 + h / 2, pz);
+      group.add(weed);
     });
+    // rock
+    const rock = mesh(
+      new THREE.DodecahedronGeometry(0.18, 0),
+      0x6a6570,
+      { cast: false, flat: true }
+    );
+    rock.position.set(-0.2, standH + 0.18, 0.15);
+    group.add(rock);
+
+    const fishList = [];
+    const nFish = 8;
+    for (let i = 0; i < nFish; i++) {
+      const col = fishColors[i % fishColors.length];
+      const body = mesh(
+        new THREE.SphereGeometry(0.07, 8, 6),
+        col,
+        { cast: false, roughness: 0.45, flat: true }
+      );
+      body.scale.set(1.7, 0.85, 0.7);
+      const tail = mesh(
+        new THREE.ConeGeometry(0.04, 0.09, 4),
+        col,
+        { cast: false, flat: true }
+      );
+      tail.rotation.z = Math.PI / 2;
+      tail.position.x = -0.11;
+      const fish = new THREE.Group();
+      fish.add(body);
+      fish.add(tail);
+      const phase = (i / nFish) * Math.PI * 2;
+      const rx = 1.1 + (i % 3) * 0.18;
+      const rz = 0.35 + (i % 4) * 0.08;
+      const cy = waterY + ((i % 5) - 2) * 0.1;
+      fish.position.set(Math.cos(phase) * rx, cy, Math.sin(phase) * rz);
+      group.add(fish);
+      fishList.push({
+        mesh: fish,
+        phase,
+        speed: 0.55 + i * 0.12,
+        rx,
+        rz,
+        cy,
+        zMul: 1.05 + (i % 3) * 0.08,
+      });
+    }
+
+    this.scene.add(group);
+    this.aquariums.push({ group, fish: fishList });
   }
 
   _animateFish(dt) {
